@@ -56,21 +56,11 @@ def read_dataset():
     return movies, tags, ratings
 
 # Count occurrences of each genre
-def genre_occurrences(movies):
-    # Get a list of all genres
-    genre_labels = set()
-    for g_list in movies['genres'].values:
-        for g in g_list:
-            genre_labels = genre_labels.union(set([g]))
-
+def genre_occurrences(movies, genres):
     # Dict of genre occurences
     genre_occurrences = {}
-    for g in genre_labels:
-        genre_occurrences[g] = 0
-
-    for g_list in movies['genres'].values:
-        for g in g_list:
-            genre_occurrences[g] += 1
+    for g in genres:
+        genre_occurrences[g] = len(movies[movies[g] == True])
 
     # Convert the dict into a list of genre, occurrences pairs, sorted by occurrences
     genre_list = list([key, val] for key, val in genre_occurrences.items())
@@ -117,19 +107,13 @@ def get_ratings_stats(movies, ratings):
     # Return the new dataframe holding aggregated ratings data
     return aggregate_ratings
 
-def get_rating_stats_by_genre(movies, aggregate_ratings):
+def get_rating_stats_by_genre(movies, aggregate_ratings, genres):
     # Construct a list of number of movies for each genre in each rating 'bucket' (0.5 to 1, 1 to 1.5, ..., 4.5 to 5.0), inclusive below (except 4.5 to 5.0 range which is inclusive on both sides)
-    # Get a list of all genres
-    genre_labels = set()
-    for g_list in movies['genres'].values:
-        for g in g_list:
-            genre_labels = genre_labels.union(set([g]))
-
     metrics = ['min_rating', 'max_rating', 'mean_rating', 'median_rating']
 
     # Dict of genre score distributions
     genre_counts = {}
-    for g in genre_labels:
+    for g in genres:
         genre_counts[g] = {}
         for metric in metrics:
             genre_counts[g][metric] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -144,14 +128,14 @@ def get_rating_stats_by_genre(movies, aggregate_ratings):
             continue
         # Repeat for each metric
         for metric in metrics:
-            # Get this movie's mbucket for this metric
+            # Get this movie's bucket for this metric
             rating = row[metric]
             index = int(((rating*2)//1)) - 1# This doubles the rating, then floors it, i.e. (0.5->0.99... become 1, 1.0-> 1.499.. become 2, etc.), then subtracts 1 so indices are 0, 1, ...
             if index == 9:
                 index -= 1 # Fixes a rating of 5 returning an out of range index of 9
             # Add one at this index for each genre tag this movie has
-            for g in row['genres']:
-                genre_counts[g][metric][index] += 1
+            for g in genres:
+                genre_counts[g][metric][index] += row[g]
 
     # Normalise the list to produce proportional results
     for genre in genre_counts.keys():
@@ -187,17 +171,13 @@ def tag_occurrences(movies, tags):
 # For a given genre, get the top movies from that genre by mean rating (where number of ratings > 1)
 def get_top_movies_by_genre(movies, aggregate_ratings, genre, number=10):
     # Get the list of movies of this genre
-    genre_movies = movies.loc[movies['genres'].apply(lambda x: genre in x)]
-
+    genre_movies = movies[movies[genre]]
     # Join this list with the aggregate_ratings list
     genre_movies = genre_movies.join(aggregate_ratings.set_index('movieId'), on='movieId')
-
     # Only consider movies with at least 2 ratings
     genre_movies = genre_movies.loc[genre_movies['number_of_ratings'].apply(lambda x: x >= 2)]
-
     # Sort the new dataframe by the mean rating, descending
     genre_movies = genre_movies.sort_values('mean_rating', ascending=False)
-
     # Return the top 10 from this list
     return genre_movies.head(number)
     
