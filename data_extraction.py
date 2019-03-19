@@ -2,9 +2,12 @@
 # Cells in rows/columns fill up, e.g. set row1 and row5 pushes row5 into the position of row2. Define the empty rows with minwidth
 # Contents that overfill a cell pushes the entire column/row to be wider, not just that cell
 
-# Visualization idead:
+# Visualization ideas:
 # Let user select two movies, produce 2D graph plot of people who have rated both movies and with their ratings
 # (allows investigation of correlation between movies)
+#
+# Plot a 3D scatter plot, one vertex for each genre, edges connecting genres with size correlating to how many movies have both those genres
+# Computational steering: Select two genres, plot 3D scatter plot of movies with those two genres and a third (for every other genre)
 #
 
 import pandas as pd
@@ -69,7 +72,6 @@ def get_ratings_stats(movies, ratings):
     # Create a list of rankings for each movie by looping over the rankings
     rating_list = {i:[] for i in aggregate_ratings['movieId'].values}
 
-    iprint = 10
     for index, row in ratings.iterrows():
         # Check that this movie Id exists in the movies database
         if row['movieId'] in rating_list.keys():
@@ -129,11 +131,11 @@ def get_rating_stats_by_genre(movies, aggregate_ratings):
         for metric in metrics:
             # Get this movie's mbucket for this metric
             rating = row[metric]
-        index = int(((rating*2)//1)) - 1# This doubles the rating, then floors it, i.e. (0.5->0.99... become 1, 1.0-> 1.499.. become 2, etc.), then subtracts 1 so indices are 0, 1, ...
-        if index == 9:
-            index -= 1 # Fixes a rating of 5 returning an out of range index of 9
-        # Add one at this index for each genre tag this movie has
-        for g in row['genres']:
+            index = int(((rating*2)//1)) - 1# This doubles the rating, then floors it, i.e. (0.5->0.99... become 1, 1.0-> 1.499.. become 2, etc.), then subtracts 1 so indices are 0, 1, ...
+            if index == 9:
+                index -= 1 # Fixes a rating of 5 returning an out of range index of 9
+            # Add one at this index for each genre tag this movie has
+            for g in row['genres']:
                 genre_counts[g][metric][index] += 1
 
     # Normalise the list to produce proportional results
@@ -199,7 +201,7 @@ if __name__ == '__main__':
     tag_list = tag_occurrences(movies, tags)
     print(tag_list[:10])
 
-    genre_scores = get_rating_dist_by_genre(movies, aggregate_ratings)
+    genre_scores = get_rating_stats_by_genre(movies, aggregate_ratings)
     print(genre_scores)
 
     top_10 = get_top_movies_by_genre(movies, aggregate_ratings, genre_list[0][0], 10)
