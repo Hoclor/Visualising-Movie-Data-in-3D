@@ -140,63 +140,78 @@ class Window(Frame):
         height = 9
 
         # Data structures for labels
-        pd = vtk.vtkPolyData()
-        pts = vtk.vtkPoints()
-        verts = vtk.vtkCellArray()
+        label_pd = vtk.vtkPolyData()
+        label_points = vtk.vtkPoints()
+        label_verts = vtk.vtkCellArray()
         label = vtk.vtkStringArray()
         label.SetName('label')
 
         # Y axis labels
         for y in range(height):
-            pts.InsertNextPoint(-1, y, 0)
-            verts.InsertNextCell(1)
-            verts.InsertCellPoint(y)
+            label_points.InsertNextPoint(-1, y, 0)
+            label_verts.InsertNextCell(1)
+            label_verts.InsertCellPoint(y)
             label.InsertNextValue(str((y+1)*0.5) + '-' + str((y+2)*0.5)) # Construct labels as '0.5-1.0'
         # Add Y axis title
-        pts.InsertNextPoint(-2, (height-1)/2, 0)
-        verts.InsertNextCell(1)
-        verts.InsertCellPoint(height)
+        label_points.InsertNextPoint(-2, (height-1)/2, 0)
+        label_verts.InsertNextCell(1)
+        label_verts.InsertCellPoint(height)
         label.InsertNextValue("Scores")
 
         # X axis labels
         for x in range(width):
-            pts.InsertNextPoint(x, -1, 0)
-            verts.InsertNextCell(1)
-            verts.InsertCellPoint(x)
+            label_points.InsertNextPoint(x, -1, 0)
+            label_verts.InsertNextCell(1)
+            label_verts.InsertCellPoint(x)
             label.InsertNextValue(genre_list[x])
         # Add X axis title
-        pts.InsertNextPoint((width-1)/2, -2, 0)
-        verts.InsertNextCell(1)
-        verts.InsertCellPoint(width)
+        label_points.InsertNextPoint((width-1)/2, -2, 0)
+        label_verts.InsertNextCell(1)
+        label_verts.InsertCellPoint(width)
         label.InsertNextValue("Genre")
 
-        pd.SetPoints(pts)
-        pd.SetVerts(verts)
-        pd.GetPointData().AddArray(label)
+        # Add chart title
+        label_points.InsertNextPoint((width-1)/2, height + 2, 2)
+        label_verts.InsertNextCell(1)
+        label_verts.InsertCellPoint(width + height)
+        label.InsertNextValue("Distribution of {} (in ranges of 0.5) of Movies by Genre".format(self.ratingMetricList.get()))
+
+        label_pd.SetPoints(label_points)
+        label_pd.SetVerts(label_verts)
+        label_pd.GetPointData().AddArray(label)
 
         hier = vtk.vtkPointSetToLabelHierarchy()
-        hier.SetInputData(pd)
+        hier.SetInputData(label_pd)
         hier.SetLabelArrayName('label')
         hier.GetTextProperty().SetColor(0.0, 0.0, 0.0)
 
-        lmapper = vtk.vtkLabelPlacementMapper()
-        lmapper.SetInputConnection(hier.GetOutputPort())
-        # lmapper.SetShapeToRoundedRect()
-        # lmapper.SetBackgroundColor(1.0, 1.0, 0.7)
-        # lmapper.SetBackgroundOpacity(0.8)
-        # lmapper.SetMargin(3)
+        label_mapper = vtk.vtkLabelPlacementMapper()
+        label_mapper.SetInputConnection(hier.GetOutputPort())
+        label_mapper.SetPlaceAllLabels(True)
+        # label_mapper.SetShapeToRoundedRect()
+        # label_mapper.SetBackgroundColor(1.0, 1.0, 0.7)
+        # label_mapper.SetBackgroundOpacity(0.8)
+        # label_mapper.SetMargin(3)
 
-        lactor = vtk.vtkActor2D()
-        lactor.SetMapper(lmapper)
+        label_actor = vtk.vtkActor2D()
+        label_actor.SetMapper(label_mapper)
 
+        # Done preparing labels, now prepare the points and lines
+
+        lines = vtk.vtkCellArray()
 
         colors = vtk.vtkNamedColors()
-        # Create the points in the grid
+        # Create the points in the grid and lines joining them vertically
         points = vtk.vtkPoints()
-        for x in range (width):
-            for y in range (height):
-                z = self.rating_dist_by_genre[genre_list[x]][y]
+        for x in range(width):
+            for y in range(height):
+                z = self.rating_stats_by_genre[genre_list[x]][metric][y] * 10 # Scale z axis up by 10
                 points.InsertNextPoint(x, y, z)
+                if(y < height - 1):
+                    line = vtk.vtkLine()
+                    line.GetPointIds().SetId(0, height*x + y)
+                    line.GetPointIds().SetId(1, height*x + y + 1)
+                    lines.InsertNextCell(line)
 
         # Add the grid points to a polydata object
         polydata = vtk.vtkPolyData()
@@ -206,26 +221,92 @@ class Window(Frame):
         glyphFilter.SetInputData(polydata)
         glyphFilter.Update()
 
-        # Create a mapper and actor
-        pointsMapper = vtk.vtkPolyDataMapper()
-        pointsMapper.SetInputConnection(glyphFilter.GetOutputPort())
+        # Draw the horizontal lines
+        # for y in range(height):
+        #     for x in range(width):
+        #         if(x < width - 1):
+        #             line = vtk.vtkLine()
+        #             line.GetPointIds().SetId(0, x + width*y)
+        #             line.GetPointIds().SetId(1, x + width*y + 1)
+        #             lines.InsertNextCell(line)
 
-        pointsActor = vtk.vtkActor()
-        pointsActor.SetMapper(pointsMapper)
-        pointsActor.GetProperty().SetPointSize(3)
-        pointsActor.GetProperty().SetColor(colors.GetColor3d("Red"))
+        # Create a Polydata to store all the lines in
+        linesPolyData = vtk.vtkPolyData()
 
+        # Add the points and lines to the dataset
+        linesPolyData.SetPoints(points)
+        linesPolyData.SetLines(lines)
+
+        # Create a mapper and actor for the lines
+        line_mapper = vtk.vtkPolyDataMapper()
+        line_mapper.SetInputData(linesPolyData)
+
+        line_actor = vtk.vtkActor()
+        line_actor.SetMapper(line_mapper)
+        line_actor.GetProperty().SetLineWidth(1)
+        line_actor.GetProperty().SetColor(colors.GetColor3d("Black"))
+        
+        # Create a mapper and actor for the points
+        points_mapper = vtk.vtkPolyDataMapper()
+        points_mapper.SetInputConnection(glyphFilter.GetOutputPort())
+
+        points_actor = vtk.vtkActor()
+        points_actor.SetMapper(points_mapper)
+        points_actor.GetProperty().SetPointSize(3)
+        points_actor.GetProperty().SetColor(colors.GetColor3d("Black"))
+
+        ##### Point triangulation #####
         # Triangulate the grid points
         delaunay = vtk.vtkDelaunay2D()
         delaunay.SetInputData(polydata)
         delaunay.Update()
 
-        # Create a mapper and actor
-        triangulatedMapper = vtk.vtkPolyDataMapper()
-        triangulatedMapper.SetInputConnection(delaunay.GetOutputPort())
+        outputPolyData = delaunay.GetOutput()
 
-        triangulatedActor = vtk.vtkActor()
-        triangulatedActor.SetMapper(triangulatedMapper)
+
+        ##### Colour mapping #####
+        # From VTK coloured elevation map example
+        bounds = 6*[0.0]
+        outputPolyData.GetBounds(bounds)
+        # Find min and max z
+        minZ = bounds[4]
+        maxZ = bounds[5]
+
+        # Create the colour map
+        colour_table = vtk.vtkLookupTable()
+        colour_table.SetTableRange(minZ, maxZ)
+        colour_table.Build()
+
+        # Generate colours for each point based on the colour map
+        colours = vtk.vtkUnsignedCharArray()
+        colours.SetNumberOfComponents(3)
+        colours.SetName("Colours")
+
+        for i in range(0, outputPolyData.GetNumberOfPoints()):
+            p = 3*[0.0]
+            outputPolyData.GetPoint(i,p)
+
+            dcolour = 3*[0.0]
+            colour_table.GetColor(p[2], dcolour)
+
+            colour=3*[0.0]
+            for j in range(0,3):
+                colour[j] = int(255.0 * dcolour[j])
+
+            try:
+                colours.InsertNextTupleValue(colour)
+            except AttributeError:
+                # For compatibility with new VTK generic data arrays.
+                colours.InsertNextTypedTuple(colour)
+
+        outputPolyData.GetPointData().SetScalars(colours)
+
+        # Create a mapper and actor
+        triangulated_mapper = vtk.vtkPolyDataMapper()
+        triangulated_mapper.SetInputData(outputPolyData)
+
+        triangulated_actor = vtk.vtkActor()
+        triangulated_actor.SetMapper(triangulated_mapper)
 
         # Create a renderer, render window, and interactor
         renderer = vtk.vtkRenderer()
@@ -234,11 +315,21 @@ class Window(Frame):
         renderWindowInteractor = vtk.vtkRenderWindowInteractor()
         renderWindowInteractor.SetRenderWindow(renderWindow)
 
+        # txt = vtk.vtkTextActor()
+        # txt.SetInput("Text here")
+        # txtprop=txt.GetTextProperty()
+        # txtprop.SetFontFamilyToArial()
+        # txtprop.SetFontSize(18)
+        # txtprop.SetColor(1,1,1)
+        # txt.SetDisplayPosition(20,30)
+        # renderer.AddActor(txt)
+
         # Add the actors to the scene
-        renderer.AddActor(lactor)
-        renderer.AddActor(pointsActor)
-        renderer.AddActor(triangulatedActor)
-        renderer.SetBackground(colors.GetColor3d("Green")) # Background color green
+        renderer.AddActor(label_actor)
+        renderer.AddActor(line_actor)
+        renderer.AddActor(points_actor)
+        renderer.AddActor(triangulated_actor)
+        renderer.SetBackground(colors.GetColor3d("SlateGray")) # Background color green
 
         # Render and interact
         renderWindow.Render()
