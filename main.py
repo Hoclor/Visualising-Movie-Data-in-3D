@@ -96,10 +96,9 @@ class Window(Frame):
         print("Reading dataset from csv files")
         self.movies, self.tags, self.ratings = de.read_dataset()
 
-        print("Producing aggregate ratings")
-        self.aggregate_ratings = de.get_ratings_stats(self.movies, self.ratings)
+        self.aggregate_ratings = []
 
-        self.rating_dist_by_genre = []
+        self.rating_stats_by_genre = []
 
         print("Done initializing data")
 
@@ -109,13 +108,19 @@ class Window(Frame):
     def test(self):
         pass
 
-    def terrain_surface_2D(self):
+    def vtk_ratings_by_genre(self):
         # Produce rating distributions if they are not already stored
-        if len(self.rating_dist_by_genre) == 0:
+        if(len(self.aggregate_ratings) == 0):
+            print("Producing aggregate ratings")
+            self.aggregate_ratings = de.get_ratings_stats(self.movies, self.ratings)
+        if len(self.rating_stats_by_genre) == 0:
             print("Producing rating distributions")
-            self.rating_dist_by_genre = de.get_rating_dist_by_genre(self.movies, self.aggregate_ratings)
+            self.rating_stats_by_genre = de.get_rating_stats_by_genre(self.movies, self.aggregate_ratings)
         
-        genre_list = self.rating_dist_by_genre.keys()
+        # Read which metric to use
+        metric = self.metric
+
+        genre_list = list(self.rating_stats_by_genre.keys())
 
         # Set up labels for the X and Y axes
         width = len(genre_list)
