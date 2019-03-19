@@ -1,8 +1,10 @@
+import random
 import pandas as pd
 import numpy as np
-import vtk
 from tkinter import *
+import vtk
 from vtk.util.colors import *
+
 import data_extraction as de
 
 # Create the GUI
