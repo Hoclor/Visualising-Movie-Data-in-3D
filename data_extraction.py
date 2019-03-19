@@ -20,7 +20,7 @@ import time
 
 def read_dataset():
     # Read the movielens dataset in using pandas
-    nrows = 10000 #TEMP, for testing
+    nrows = 28000000 #TEMP, for testing
     movies = pd.read_csv('movielens_dataset/movies.csv', nrows=nrows)
     tags = pd.read_csv('movielens_dataset/tags.csv', nrows=nrows)
     ratings = pd.read_csv('movielens_dataset/ratings.csv', nrows=nrows)
@@ -46,7 +46,7 @@ def read_dataset():
     # Modify timestamps to be in terms of years
     ratings.timestamp = pd.to_datetime(ratings.timestamp, unit='s')
     ratings.timestamp = ratings.timestamp.dt.year
-
+    
 
     # Modify timestamps to be in terms of years
     tags.timestamp = pd.to_datetime(tags.timestamp, unit='s')
@@ -180,25 +180,57 @@ def get_top_movies_by_genre(movies, aggregate_ratings, genre, number=10):
     genre_movies = genre_movies.sort_values('mean_rating', ascending=False)
     # Return the top 10 from this list
     return genre_movies.head(number)
-    
+
+# Gets the popularity of each genre (counted as the number of ratings submitted bout movies of that genre) as a function over time
+def get_genre_popularity_over_time(movies, ratings):
+    # Join ratings and movies on movieId
+    rating_movies = ratings.join(movies.set_index('movieId'), on='movieId')
+    # List of all movie genres - not including [no genre listed]
+    genres = ['Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'IMAX', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
+    # Create a list of timestamps (years from 1996 to 2018 inclusive), each list holds the number of ratings for each genre in that timestamp
+    popularity = []
+    for i in range(1996, 2019):
+        year_dict = {}
+        for g in genres:
+            counts = len(rating_movies[(rating_movies['timestamp'] == i) & (rating_movies[g])])
+            year_dict[g] = counts
+        popularity.append(year_dict)
+    return popularity
+
+   
+
+
     
 if __name__ == '__main__':
     movies, tags, ratings = read_dataset()
 
-    aggregate_ratings = get_ratings_stats(movies, ratings)
-    print(aggregate_ratings.loc[aggregate_ratings['mean_rating'] > 0].head(10))
-    print()
+    pop_time = get_genre_popularity_over_time(movies, ratings)
+    # Find the maximum pop for each year,sum pop for each year, and the maximum normalised pop ever
+    max_norm = 0
+    print("Year, sum, max")
+    for year in range(len(pop_time)):
+        year_sum = sum(pop_time[year].values())
+        year_max = max(pop_time[year].values())
+        year_max_norm = year_max/year_sum
+        if year_max_norm > max_norm:
+            max_norm = year_max_norm
+        print(year+1996, year_sum, year_max)
+    print("Max norm:", max_norm)
 
-    movies, tags, ratings = read_dataset()
-    genre_list = genre_occurrences(movies)
-    print(genre_list[:10])
-    print()
-    tag_list = tag_occurrences(movies, tags)
-    print(tag_list[:10])
+    # aggregate_ratings = get_ratings_stats(movies, ratings)
+    # print(aggregate_ratings.loc[aggregate_ratings['mean_rating'] > 0].head(10))
+    # print()
 
-    genre_scores = get_rating_stats_by_genre(movies, aggregate_ratings)
-    print(genre_scores)
+    # movies, tags, ratings = read_dataset()
+    # genre_list = genre_occurrences(movies)
+    # print(genre_list[:10])
+    # print()
+    # tag_list = tag_occurrences(movies, tags)
+    # print(tag_list[:10])
 
-    top_10 = get_top_movies_by_genre(movies, aggregate_ratings, genre_list[0][0], 10)
-    print(genre_list[0][0])
-    print(top_10)
+    # genre_scores = get_rating_stats_by_genre(movies, aggregate_ratings)
+    # print(genre_scores)
+
+    # top_10 = get_top_movies_by_genre(movies, aggregate_ratings, genre_list[0][0], 10)
+    # print(genre_list[0][0])
+    # print(top_10)
