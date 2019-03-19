@@ -9,9 +9,7 @@
 
 import pandas as pd
 import numpy as np
-import vtk
 from tkinter import *
-from vtk.util.colors import *
 import time
 
 
@@ -75,7 +73,7 @@ def get_ratings_stats(movies, ratings):
     for index, row in ratings.iterrows():
         # Check that this movie Id exists in the movies database
         if row['movieId'] in rating_list.keys():
-        rating_list[row['movieId']].append(row['rating'])
+            rating_list[row['movieId']].append(row['rating'])
     
     # Create the aggregate values for each movie with at least 1 rating
     for key, val in rating_list.items():
@@ -156,5 +154,6 @@ if __name__ == '__main__':
 
     print(movies.head(5))
 
-    top_10 = get_top_10_movies_by_genre(movies, aggregate_ratings, genre_list[1][0])
-    print(genre_list[1][0], top_10)
+    top_10 = get_top_movies_by_genre(movies, aggregate_ratings, genre_list[0][0], 10)
+    print(genre_list[0][0])
+    print(top_10)
