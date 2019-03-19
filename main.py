@@ -16,8 +16,11 @@ class Window(Frame):
         self.init_window(cols=4, rows=4) # Use a 5x5 grid in the main frame
 
         self.init_data()
-        
 
+        # Default metric
+        self.metric = 'mean_rating'
+
+        
     # Creation of init_window
     def init_window(self, rows=5, cols=5):
         # Set the title of the master widget
@@ -84,7 +87,7 @@ class Window(Frame):
         # Create a drop down list to choose the metric for the above visualization
         self.ratingMetricList = StringVar(self.master)
         self.ratingMetricList.set('Mean rating')
-        
+
         ratingMetricMenu = OptionMenu(self, self.ratingMetricList, "Mean rating", "Median rating", "Highest rating", "Lowest rating")
         ratingMetricMenu.config(**optionmenu_size_args)
         # Place the drop down list in the window
@@ -129,10 +132,10 @@ class Window(Frame):
         if len(self.rating_stats_by_genre) == 0:
             print("Producing rating distributions")
             self.rating_stats_by_genre = de.get_rating_stats_by_genre(self.movies, self.aggregate_ratings)
-        
+
         # Read which metric to use
         metric = self.metric
-
+        
         genre_list = list(self.rating_stats_by_genre.keys())
 
         # Set up labels for the X and Y axes
@@ -432,8 +435,9 @@ class Window(Frame):
         iren.Start()
 
     def grid_2D(self):
-        """Generate a 2D grid in 3D space of 
+        """Generate a 2D grid in 3D space
         """
+        colors = vtk.vtkNamedColors()
         # Provide some geometry.
         xResolution = 10
         yResolution = 10
