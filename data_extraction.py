@@ -100,7 +100,7 @@ def get_ratings_stats(movies, ratings):
     # Return the new dataframe holding aggregated ratings data
     return aggregate_ratings
 
-def get_rating_dist_by_genre(movies, aggregate_ratings):
+def get_rating_stats_by_genre(movies, aggregate_ratings):
     # Construct a list of number of movies for each genre in each rating 'bucket' (0.5 to 1, 1 to 1.5, ..., 4.5 to 5.0), inclusive below (except 4.5 to 5.0 range which is inclusive on both sides)
     # Get a list of all genres
     genre_labels = set()
@@ -108,10 +108,14 @@ def get_rating_dist_by_genre(movies, aggregate_ratings):
         for g in g_list:
             genre_labels = genre_labels.union(set([g]))
 
+    metrics = ['min_rating', 'max_rating', 'mean_rating', 'median_rating']
+
     # Dict of genre score distributions
     genre_counts = {}
     for g in genre_labels:
-        genre_counts[g] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        genre_counts[g] = {}
+        for metric in metrics:
+            genre_counts[g][metric] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     # Join movies and aggregate_ratings on movie Id
     movies = movies.join(aggregate_ratings.set_index('movieId'), on='movieId')
@@ -121,19 +125,22 @@ def get_rating_dist_by_genre(movies, aggregate_ratings):
         # Skip if movie has no ratings
         if row['number_of_ratings'] == 0:
             continue
-        # Get this movie's average rating's bucket
-        rating = row['mean_rating']
+        # Repeat for each metric
+        for metric in metrics:
+            # Get this movie's mbucket for this metric
+            rating = row[metric]
         index = int(((rating*2)//1)) - 1# This doubles the rating, then floors it, i.e. (0.5->0.99... become 1, 1.0-> 1.499.. become 2, etc.), then subtracts 1 so indices are 0, 1, ...
         if index == 9:
             index -= 1 # Fixes a rating of 5 returning an out of range index of 9
         # Add one at this index for each genre tag this movie has
         for g in row['genres']:
-            genre_counts[g][index] += 1
+                genre_counts[g][metric][index] += 1
 
     # Normalise the list to produce proportional results
     for genre in genre_counts.keys():
-        if sum(genre_counts[genre]) > 0:
-            genre_counts[genre] = [genre_counts[genre][i]/sum(genre_counts[genre]) for i in range(len(genre_counts[genre]))]
+        for metric in metrics:
+            if sum(genre_counts[genre][metric]) > 0:
+                genre_counts[genre][metric] = [genre_counts[genre][metric][i]/sum(genre_counts[genre][metric]) for i in range(len(genre_counts[genre][metric]))]
 
     # Return the list of score distributions by genre
     return genre_counts
