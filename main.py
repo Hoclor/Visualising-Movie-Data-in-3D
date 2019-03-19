@@ -174,7 +174,7 @@ class Window(Frame):
         label.InsertNextValue("Genre")
 
         # Add chart title
-        label_points.InsertNextPoint((width-1)/2, height + 2, 2)
+        label_points.InsertNextPoint((width-1)/4, height + 2, 2)
         label_verts.InsertNextCell(1)
         label_verts.InsertCellPoint(width + height)
         label.InsertNextValue("Distribution of {} (in ranges of 0.5) of Movies by Genre".format(self.ratingMetricList.get()))
