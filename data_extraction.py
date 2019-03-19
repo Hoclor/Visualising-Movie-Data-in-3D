@@ -122,23 +122,22 @@ def tag_occurrences(movies, tags):
 
     return tag_list
 
-# For a given genre, get the top 10 movies from that genre by mean rating
-def get_top_10_movies_by_genre(movies, aggregate_ratings, genre):
+# For a given genre, get the top movies from that genre by mean rating (where number of ratings > 1)
+def get_top_movies_by_genre(movies, aggregate_ratings, genre, number=10):
     # Get the list of movies of this genre
-    print(genre)
     genre_movies = movies.loc[movies['genres'].apply(lambda x: genre in x)]
 
     # Join this list with the aggregate_ratings list
     genre_movies = genre_movies.join(aggregate_ratings.set_index('movieId'), on='movieId')
 
+    # Only consider movies with at least 2 ratings
+    genre_movies = genre_movies.loc[genre_movies['number_of_ratings'].apply(lambda x: x >= 2)]
+
     # Sort the new dataframe by the mean rating, descending
     genre_movies = genre_movies.sort_values('mean_rating', ascending=False)
 
     # Return the top 10 from this list
-    return genre_movies.head(10)
-
-# For a given tag, get the top movies with this tag by number of tags applied, or by score
-
+    return genre_movies.head(number)
     
     
 if __name__ == '__main__':
