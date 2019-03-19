@@ -12,6 +12,7 @@ import numpy as np
 import vtk
 from tkinter import *
 from vtk.util.colors import *
+import time
 
 
 # Data extraction and filtering
@@ -68,30 +69,59 @@ def get_ratings_stats(movies, ratings):
     aggregate_ratings['movieId'] = movies['movieId']
 
     # Create a list of rankings for each movie by looping over the rankings
+    rating_list = {i:[] for i in aggregate_ratings['movieId'].values}
+
     iprint = 10
-    for i in aggregate_ratings['movieId'].values:
-        this_rankings = list(ratings.loc[ratings['movieId'] == i]['rating'])
+    for index, row in ratings.iterrows():
+        rating_list[row['movieId']].append(row['rating'])
+    
+    # Create the aggregate values for each movie with at least 1 rating
+    # start = time.time()
+    for key, val in rating_list.items():
         # Skip this film if it has no rankings
-        if len(this_rankings) < 1:
+        if len(val) < 1:
             continue
         # Get the lowest and highest values
-        lowest = min(this_rankings)
-        highest = max(this_rankings)
+        lowest = min(val)
+        highest = max(val)
         # Get the mean and median
-        mean = np.mean(this_rankings)
-        median = np.median(this_rankings)
+        mean = np.mean(val)
+        median = np.median(val)
         # Get the std dev
-        stddev = np.std(this_rankings)
+        stddev = np.std(val)
         # Insert the values
-        aggregate_ratings.loc[aggregate_ratings['movieId'] == i, 'min_rating'] = lowest
-        aggregate_ratings.loc[aggregate_ratings['movieId'] == i, 'max_rating'] = highest
-        aggregate_ratings.loc[aggregate_ratings['movieId'] == i, 'mean_rating'] = mean
-        aggregate_ratings.loc[aggregate_ratings['movieId'] == i, 'median_rating'] = median
-        aggregate_ratings.loc[aggregate_ratings['movieId'] == i, 'std_dev'] = stddev
+        aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'min_rating'] = lowest
+        aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'max_rating'] = highest
+        aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'mean_rating'] = mean
+        aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'median_rating'] = median
+        aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'std_dev'] = stddev
+    # print("first", time.time() - start)
 
-        if i % iprint == 0:
-            print(i)
-            iprint *= 10
+    # start = time.time()
+    # for i in aggregate_ratings['movieId'].values:
+    #     this_rankings = list(ratings.loc[ratings['movieId'] == i]['rating'])
+    #     # Skip this film if it has no rankings
+    #     if len(this_rankings) < 1:
+    #         continue
+    #     # Get the lowest and highest values
+    #     lowest = min(this_rankings)
+    #     highest = max(this_rankings)
+    #     # Get the mean and median
+    #     mean = np.mean(this_rankings)
+    #     median = np.median(this_rankings)
+    #     # Get the std dev
+    #     stddev = np.std(this_rankings)
+    #     # Insert the values
+    #     aggregate_ratings.loc[aggregate_ratings['movieId'] == i, 'min_rating'] = lowest
+    #     aggregate_ratings.loc[aggregate_ratings['movieId'] == i, 'max_rating'] = highest
+    #     aggregate_ratings.loc[aggregate_ratings['movieId'] == i, 'mean_rating'] = mean
+    #     aggregate_ratings.loc[aggregate_ratings['movieId'] == i, 'median_rating'] = median
+    #     aggregate_ratings.loc[aggregate_ratings['movieId'] == i, 'std_dev'] = stddev
+
+    #     if i % iprint == 0:
+    #         print(i)
+    #         iprint *= 10
+    # print("second", time.time() - start)
 
     # Return the new dataframe holding aggregated ratings data
     return aggregate_ratings
@@ -136,7 +166,7 @@ def get_top_10_movies_by_genre(movies, aggregate_ratings, genre):
 
     
     
-if __name == '__main__':
+if __name__ == '__main__':
     movies, tags, ratings = read_dataset()
 
     aggregate_ratings = get_ratings_stats(movies, ratings)
