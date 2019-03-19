@@ -176,6 +176,7 @@ class Window(Frame):
         metric = self.metric
         
         genre_list = list(self.rating_stats_by_genre.keys())
+        genre_list.sort()
 
         # Set up labels for the X and Y axes
         width = len(genre_list)
@@ -216,7 +217,7 @@ class Window(Frame):
         label_points.InsertNextPoint((width-1)/4, height + 2, 2)
         label_verts.InsertNextCell(1)
         label_verts.InsertCellPoint(width + height)
-        label.InsertNextValue("Distribution of {} (in ranges of 0.5) of Movies by Genre".format(self.ratingMetricList.get()))
+        label.InsertNextValue("Distribution of {} (in ranges of 0.5) of Movies by Genre".format(self.vis1_rating_list.get()))
 
         label_pd.SetPoints(label_points)
         label_pd.SetVerts(label_verts)
