@@ -105,6 +105,19 @@ class Window(Frame):
     def client_exit(self):
         exit()
 
+    def updateMetric(self, *args):
+        metric_string = self.ratingMetricList.get()
+        if metric_string == 'Mean rating':
+            self.metric = 'mean_rating'
+        elif metric_string == 'Median rating':
+            self.metric = 'median_rating'
+        elif metric_string == 'Highest rating':
+            self.metric = 'max_rating'
+        elif metric_string == 'Lowest rating':
+            self.metric = 'min_rating'
+        else:
+            print("Unexpected metric value: {}".format(metric_string))
+
     def test(self):
         pass
 
