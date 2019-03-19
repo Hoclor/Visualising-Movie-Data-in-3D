@@ -3,6 +3,7 @@ import numpy as np
 import vtk
 from tkinter import *
 from vtk.util.colors import *
+import data_extraction as de
 
 # Create the GUI
 class Window(Frame):
