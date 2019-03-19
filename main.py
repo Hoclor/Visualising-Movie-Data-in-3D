@@ -15,6 +15,7 @@ class Window(Frame):
         self.master = master
         self.init_window(cols=4, rows=4) # Use a 5x5 grid in the main frame
 
+        self.init_data()
         
 
     # Creation of init_window
@@ -72,6 +73,17 @@ class Window(Frame):
         # Place the button in the window
         quitButton.grid(column=2, row=0)
 
+    # Gathering of data
+    def init_data(self):
+        print("Reading dataset from csv files")
+        self.movies, self.tags, self.ratings = de.read_dataset()
+
+        print("Producing aggregate ratings")
+        self.aggregate_ratings = de.get_ratings_stats(self.movies, self.ratings)
+
+        self.rating_dist_by_genre = []
+
+        print("Done initializing data")
 
     def client_exit(self):
         exit()
