@@ -35,7 +35,7 @@ class Window(Frame):
             'font': ("Courier", 14),
             'bg': '#aaa',
             'activebackground': '#666',
-            'wraplength': 32*14
+            'wraplength': 32*10
         }
         optionmenu_size_args = {
             'height': 6,
