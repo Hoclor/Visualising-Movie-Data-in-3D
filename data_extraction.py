@@ -62,7 +62,7 @@ def genre_occurrences(movies):
 
     return genre_list
 
-# Produce lowest, highest, mean, median, stddev of movie ratings for each movie
+# Produce lowest, highest, mean, median, stddev, and number of movie ratings for each movie
 def get_ratings_stats(movies, ratings):
     # Generate a new dataframe to store the aggregate ratings in
     aggregate_ratings = pd.DataFrame()
@@ -73,10 +73,11 @@ def get_ratings_stats(movies, ratings):
 
     iprint = 10
     for index, row in ratings.iterrows():
+        # Check that this movie Id exists in the movies database
+        if row['movieId'] in rating_list.keys():
         rating_list[row['movieId']].append(row['rating'])
     
     # Create the aggregate values for each movie with at least 1 rating
-    # start = time.time()
     for key, val in rating_list.items():
         # Skip this film if it has no rankings
         if len(val) < 1:
@@ -95,33 +96,7 @@ def get_ratings_stats(movies, ratings):
         aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'mean_rating'] = mean
         aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'median_rating'] = median
         aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'std_dev'] = stddev
-    # print("first", time.time() - start)
-
-    # start = time.time()
-    # for i in aggregate_ratings['movieId'].values:
-    #     this_rankings = list(ratings.loc[ratings['movieId'] == i]['rating'])
-    #     # Skip this film if it has no rankings
-    #     if len(this_rankings) < 1:
-    #         continue
-    #     # Get the lowest and highest values
-    #     lowest = min(this_rankings)
-    #     highest = max(this_rankings)
-    #     # Get the mean and median
-    #     mean = np.mean(this_rankings)
-    #     median = np.median(this_rankings)
-    #     # Get the std dev
-    #     stddev = np.std(this_rankings)
-    #     # Insert the values
-    #     aggregate_ratings.loc[aggregate_ratings['movieId'] == i, 'min_rating'] = lowest
-    #     aggregate_ratings.loc[aggregate_ratings['movieId'] == i, 'max_rating'] = highest
-    #     aggregate_ratings.loc[aggregate_ratings['movieId'] == i, 'mean_rating'] = mean
-    #     aggregate_ratings.loc[aggregate_ratings['movieId'] == i, 'median_rating'] = median
-    #     aggregate_ratings.loc[aggregate_ratings['movieId'] == i, 'std_dev'] = stddev
-
-    #     if i % iprint == 0:
-    #         print(i)
-    #         iprint *= 10
-    # print("second", time.time() - start)
+        aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'number_of_ratings'] = len(val)
 
     # Return the new dataframe holding aggregated ratings data
     return aggregate_ratings
