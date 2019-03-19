@@ -80,28 +80,64 @@ class Window(Frame):
         glyphButton.grid(column=2, row=3)
 
         # Create a button instance
-        ratingsByGenreButton = Button(self, text="Visualization 4:\nView Rating Statistics by Genre\n\n(Select metric below)", command=self.vtk_ratings_by_genre, **button_size_args)
+        testButton = Button(self, text="Test", command=self.vtk_movie_popularity_circ_chart, **button_size_args)
         # Place the button in the window
-        ratingsByGenreButton.grid(column=3, row=1)
+        testButton.grid(column=3, row=2)
+
+        # Create a button instance
+        ratingsByGenreButton = Button(self, text="Visualization 1:\nRating distribution statistics by Genre\n\n(Select metric below)", command=self.vtk_ratings_by_genre, **button_size_args)
+        # Place the button in the window
+        ratingsByGenreButton.grid(column=0, row=0)
 
         # Create a drop down list to choose the metric for the above visualization
-        self.ratingMetricList = StringVar(self.master)
-        self.ratingMetricList.set('Mean rating')
+        self.vis1_rating_list = StringVar(self.master)
+        self.vis1_rating_list.set('Mean rating')
 
-        ratingMetricMenu = OptionMenu(self, self.ratingMetricList, "Mean rating", "Median rating", "Highest rating", "Lowest rating")
-        ratingMetricMenu.config(**optionmenu_size_args)
+        vis1_rating = OptionMenu(self, self.vis1_rating_list, "Mean rating", "Median rating", "Highest rating", "Lowest rating")
+        vis1_rating.config(**optionmenu_size_args)
         # Place the drop down list in the window
-        ratingMetricMenu.grid(column=3, row=2)
-        self.ratingMetricList.trace('w', self.updateMetric)
+        vis1_rating.grid(column=0, row=1)
+        self.vis1_rating_list.trace('w', self.updateMetric)
+
+        # Create a button instance
+        genreGraphButton = Button(self, text="Visualization 2:\nHow different Genres are connected through movies\n\n(Select genres below, or run with none selected)", command=self.vtk_genre_graph, **button_size_args)
+        # Place the button in the window
+        genreGraphButton.grid(column=1, row=0)
+
+        genres = ['Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'IMAX', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
+
+        # Create two drop down lists to choose genres from for the above visualization
+        self.vis2_genre1_list = StringVar(self.master)
+        self.vis2_genre1_list.set('None')
+
+        vis2_genre1 = OptionMenu(self, self.vis2_genre1_list, 'None', *genres)
+        vis2_genre1.config(**optionmenu_size_args)
+        # Place the drop down list in the window
+        vis2_genre1.grid(column=1, row=1)
+        self.vis2_genre1_list.trace('w', self.updateGenre)
+
+        # Second drop down list
+        self.vis2_genre2_list = StringVar(self.master)
+        self.vis2_genre2_list.set('None')
+
+        vis2_genre2 = OptionMenu(self, self.vis2_genre2_list, 'None', *genres)
+        vis2_genre2.config(**optionmenu_size_args)
+        # Place the drop down list in the window
+        vis2_genre2.grid(column=1, row=2)
+        self.vis2_genre2_list.trace('w', self.updateGenre)
+
 
     # Gathering of data
     def init_data(self):
-        print("Reading dataset from csv files")
         self.movies, self.tags, self.ratings = de.read_dataset()
 
         self.aggregate_ratings = []
 
         self.rating_stats_by_genre = []
+
+        self.genre_popularity = []
+
+        self.genres = ['Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'IMAX', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
 
         print("Done initializing data")
 
@@ -109,7 +145,7 @@ class Window(Frame):
         exit()
 
     def updateMetric(self, *args):
-        metric_string = self.ratingMetricList.get()
+        metric_string = self.vis1_rating_list.get()
         if metric_string == 'Mean rating':
             self.metric = 'mean_rating'
         elif metric_string == 'Median rating':
@@ -120,6 +156,9 @@ class Window(Frame):
             self.metric = 'min_rating'
         else:
             print("Unexpected metric value: {}".format(metric_string))
+
+    def updateGenre(self, *args):
+        pass
 
     def test(self):
         pass
