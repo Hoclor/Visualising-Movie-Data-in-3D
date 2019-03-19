@@ -275,12 +275,22 @@ class Window(Frame):
         minZ = bounds[4]
         maxZ = bounds[5]
 
-        # Create the colour map
-        colour_table = vtk.vtkLookupTable()
-        colour_table.SetTableRange(minZ, maxZ)
-        colour_table.Build()
+        # Create the colour table
+        # From https://stackoverflow.com/questions/51747494/how-to-visualize-2d-array-of-doubles-in-vtk
+        colorSeries = vtk.vtkColorSeries()
+        colorSeries.SetColorScheme(vtk.vtkColorSeries.CITRUS)
+        colour_table = vtk.vtkColorTransferFunction()
+        colour_table.SetColorSpaceToHSV()
+        nColors = colorSeries.GetNumberOfColors()
+        zMin = minZ
+        zMax = maxZ
+        for i in range(0, nColors):
+            color = colorSeries.GetColor(i)
+            color = [c/255.0 for c in color]
+            t = zMin + float(zMax - zMin)/(nColors - 1) * i
+            colour_table.AddRGBPoint(t, color[0], color[1], color[2])
 
-        # Generate colours for each point based on the colour map
+        # Generate colours for each point based on the colour table
         colours = vtk.vtkUnsignedCharArray()
         colours.SetNumberOfComponents(3)
         colours.SetName("Colours")
@@ -294,7 +304,7 @@ class Window(Frame):
 
             colour=3*[0.0]
             for j in range(0,3):
-                colour[j] = int(255.0 * dcolour[j])
+                colour[j] = int(255*dcolour[j])
 
             try:
                 colours.InsertNextTupleValue(colour)
