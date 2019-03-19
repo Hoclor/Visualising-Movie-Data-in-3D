@@ -166,11 +166,9 @@ class Window(Frame):
     def vtk_ratings_by_genre(self):
         # Produce rating distributions if they are not already stored
         if(len(self.aggregate_ratings) == 0):
-            print("Producing aggregate ratings")
             self.aggregate_ratings = de.get_ratings_stats(self.movies, self.ratings)
         if len(self.rating_stats_by_genre) == 0:
-            print("Producing rating distributions")
-            self.rating_stats_by_genre = de.get_rating_stats_by_genre(self.movies, self.aggregate_ratings)
+            self.rating_stats_by_genre = de.get_rating_stats_by_genre(self.movies, self.aggregate_ratings, self.genres)
 
         # Read which metric to use
         metric = self.metric

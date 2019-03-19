@@ -19,6 +19,7 @@ import time
 # Data extraction and filtering
 
 def read_dataset():
+    print("Reading and filtering dataset from csv files")
     # Read the movielens dataset in using pandas
     nrows = 28000000 #TEMP, for testing
     movies = pd.read_csv('movielens_dataset/movies.csv', nrows=nrows)
@@ -70,6 +71,7 @@ def genre_occurrences(movies, genres):
 
 # Produce lowest, highest, mean, median, stddev, and number of movie ratings for each movie
 def get_ratings_stats(movies, ratings):
+    print("Producing aggregate ratings")
     # Generate a new dataframe to store the aggregate ratings in
     aggregate_ratings = pd.DataFrame()
     aggregate_ratings['movieId'] = movies['movieId']
@@ -108,6 +110,7 @@ def get_ratings_stats(movies, ratings):
     return aggregate_ratings
 
 def get_rating_stats_by_genre(movies, aggregate_ratings, genres):
+    print("Producing rating distributions")
     # Construct a list of number of movies for each genre in each rating 'bucket' (0.5 to 1, 1 to 1.5, ..., 4.5 to 5.0), inclusive below (except 4.5 to 5.0 range which is inclusive on both sides)
     metrics = ['min_rating', 'max_rating', 'mean_rating', 'median_rating']
 
@@ -183,6 +186,7 @@ def get_top_movies_by_genre(movies, aggregate_ratings, genre, number=10):
 
 # Gets the popularity of each genre (counted as the number of ratings submitted bout movies of that genre) as a function over time
 def get_genre_popularity_over_time(movies, ratings):
+    print("Gathering genre popularity metrics")
     # Join ratings and movies on movieId
     rating_movies = ratings.join(movies.set_index('movieId'), on='movieId')
     # List of all movie genres - not including [no genre listed]
