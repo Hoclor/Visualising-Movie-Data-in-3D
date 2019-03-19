@@ -32,11 +32,26 @@ def read_dataset():
     movies['year'] = movies['title'].str.extract('.*\(([0-9]*)\).*', expand = False)
     movies['title'] = movies['title'].str.extract('(.*) \([0-9]*\).*', expand = False)
 
-    # Convert the genres field from a string to a list of strings
-    movies['genres'] = movies['genres'].apply(lambda genres: list(genres.split('|')))
+    # Convert the genres field from a string of genres to individual columns
+    # list of all genres
+    genres_unique = ['Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'IMAX', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
+    genres_unique = pd.DataFrame(movies.genres.str.split('|').tolist()).stack().unique()
+    genres_unique = pd.DataFrame(genres_unique, columns=['genre']) # Format into DataFrame to store later
+    movies = movies.join(movies.genres.str.get_dummies().astype(bool))
+    movies.drop('genres', inplace=True, axis=1)
+    # Drop the '(no genres listed)' column
+    if '(no genres listed)' in movies.columns:
+        movies.drop('(no genres listed)', inplace=True, axis=1)
 
-    # Delete timestamps
-    del tags['timestamp'], ratings['timestamp']
+    # Modify timestamps to be in terms of years
+    ratings.timestamp = pd.to_datetime(ratings.timestamp, unit='s')
+    ratings.timestamp = ratings.timestamp.dt.year
+
+
+    # Modify timestamps to be in terms of years
+    tags.timestamp = pd.to_datetime(tags.timestamp, unit='s')
+    tags.timestamp = tags.timestamp.dt.year
+
 
     return movies, tags, ratings
 
