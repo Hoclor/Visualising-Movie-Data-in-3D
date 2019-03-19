@@ -115,8 +115,7 @@ class Window(Frame):
             pts.InsertNextPoint(-1, y, 0)
             verts.InsertNextCell(1)
             verts.InsertCellPoint(y)
-            orient.InsertNextValue(0)
-            label.InsertNextValue(str((y+1)*0.5))
+            label.InsertNextValue(str((y+1)*0.5) + '-' + str((y+2)*0.5)) # Construct labels as '0.5-1.0'
         # Add Y axis title
         pts.InsertNextPoint(-2, (height-1)/2, 0)
         verts.InsertNextCell(1)
@@ -128,7 +127,6 @@ class Window(Frame):
             pts.InsertNextPoint(x, -1, 0)
             verts.InsertNextCell(1)
             verts.InsertCellPoint(x)
-            orient.InsertNextValue(0)
             label.InsertNextValue(genre_list[x])
         # Add X axis title
         pts.InsertNextPoint((width-1)/2, -2, 0)
