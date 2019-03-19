@@ -25,6 +25,24 @@ class Window(Frame):
         cell_height = 900//rows
         cell_width = 1600//cols
 
+        # Set up a dict for button sizing arguments to use for all (standard) buttons
+        button_size_args = {
+            'height': 8,
+            'width': 32,
+            'font': ("Courier", 14),
+            'bg': '#aaa',
+            'activebackground': '#666',
+            'wraplength': 32*14
+        }
+        optionmenu_size_args = {
+            'height': 6,
+            'width': 24,
+            'font': ("Courier", 12),
+            'bg': '#aaa',
+            'activebackground': '#666',
+            'wraplength': 32*12
+        }
+
         # Set the widget to fill the entire root window
         self.pack(fill=BOTH, expand=1)
 
@@ -39,39 +57,39 @@ class Window(Frame):
                 Label(self, text='').grid(column=col, row=row)
 
         # Create a button instance
-        quitButton = Button(self, text="Quit", command=self.client_exit, height=10, width=40)
+        quitButton = Button(self, text="Quit", command=self.client_exit, **button_size_args)
         # Place the button in the window
-        quitButton.grid(column=3, row=3)
+        quitButton.grid(column=cols-1, row=rows-1)
 
         # Create a button instance
-        quitButton = Button(self, text="Cube", command=self.vtk_generate_cube, height=10, width=40)
+        gridButton = Button(self, text="Grid 2D", command=self.grid_2D, **button_size_args)
         # Place the button in the window
-        quitButton.grid(column=0, row=3)
+        gridButton.grid(column=0, row=3)
 
         # Create a button instance
-        quitButton = Button(self, text="Grid 2D", command=self.grid_2D, height=10, width=40)
+        ptCloudButton = Button(self, text="Point Cloud", command=self.point_cloud, **button_size_args)
         # Place the button in the window
-        quitButton.grid(column=0, row=2)
+        ptCloudButton.grid(column=1, row=3)
 
         # Create a button instance
-        quitButton = Button(self, text="Point Cloud", command=self.point_cloud, height=10, width=40)
+        glyphButton = Button(self, text="Glyphs", command=self.glyphs_at_points, **button_size_args)
         # Place the button in the window
-        quitButton.grid(column=1, row=2)
+        glyphButton.grid(column=2, row=3)
 
         # Create a button instance
-        quitButton = Button(self, text="Glyphs", command=self.glyphs_at_points, height=10, width=40)
+        ratingsByGenreButton = Button(self, text="Visualization 4:\nView Rating Statistics by Genre\n\n(Select metric below)", command=self.vtk_ratings_by_genre, **button_size_args)
         # Place the button in the window
-        quitButton.grid(column=2, row=2)
+        ratingsByGenreButton.grid(column=3, row=1)
 
-        # Create a button instance
-        quitButton = Button(self, text="Terrain 2D", command=self.terrain_surface_2D, height=10, width=40)
-        # Place the button in the window
-        quitButton.grid(column=3, row=2)
+        # Create a drop down list to choose the metric for the above visualization
+        self.ratingMetricList = StringVar(self.master)
+        self.ratingMetricList.set('Mean rating')
         
-        # Create a button instance
-        quitButton = Button(self, text="Test", command=self.test, height=10, width=40)
-        # Place the button in the window
-        quitButton.grid(column=2, row=0)
+        ratingMetricMenu = OptionMenu(self, self.ratingMetricList, "Mean rating", "Median rating", "Highest rating", "Lowest rating")
+        ratingMetricMenu.config(**optionmenu_size_args)
+        # Place the drop down list in the window
+        ratingMetricMenu.grid(column=3, row=2)
+        self.ratingMetricList.trace('w', self.updateMetric)
 
     # Gathering of data
     def init_data(self):
