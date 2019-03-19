@@ -17,7 +17,7 @@ import time
 
 def read_dataset():
     # Read the movielens dataset in using pandas
-    nrows = 100000 #TEMP, for testing
+    nrows = 10000 #TEMP, for testing
     movies = pd.read_csv('movielens_dataset/movies.csv', nrows=nrows)
     tags = pd.read_csv('movielens_dataset/tags.csv', nrows=nrows)
     ratings = pd.read_csv('movielens_dataset/ratings.csv', nrows=nrows)
@@ -79,6 +79,7 @@ def get_ratings_stats(movies, ratings):
     for key, val in rating_list.items():
         # Skip this film if it has no rankings
         if len(val) < 1:
+            aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'number_of_ratings'] = 0
             continue
         # Get the lowest and highest values
         lowest = min(val)
