@@ -16,7 +16,6 @@ class Window(Frame):
 
         self.init_window(cols=4, rows=4) # Use a 5x5 grid in the main frame
 
-
         # Vis 1
         # Default metric
         self.metric = 'mean_rating'
@@ -126,31 +125,6 @@ class Window(Frame):
         # Place the drop down list in the window
         vis2_metric.grid(column=1, row=3)
         self.vis2_metric_list.trace('w', self.updatePopMetric)
-
-        # Create a button instance
-        genreGraphButton = Button(self, text="Visualization 3:\nHow different Genres are connected through movies\n\n(Optional: Select one or two genres below)", command=self.vtk_genre_graph, **self.button_size_args)
-        # Place the button in the window
-        genreGraphButton.grid(column=1, row=0)
-
-        # Create two drop down lists to choose genres from for the above visualization
-        self.vis3_genre1_list = StringVar(self.master)
-        self.vis3_genre1_list.set('None')
-
-        vis3_genre1 = OptionMenu(self, self.vis3_genre1_list, 'None', *self.genres)
-        vis3_genre1.config(**self.optionmenu_size_args)
-        # Place the drop down list in the window
-        vis3_genre1.grid(column=1, row=1)
-        self.vis3_genre1_list.trace('w', self.updateGenre)
-
-        # Second drop down list
-        self.vis3_genre2_list = StringVar(self.master)
-        self.vis3_genre2_list.set('None')
-
-        vis3_genre2 = OptionMenu(self, self.vis3_genre2_list, 'None', *self.genres)
-        vis3_genre2.config(**self.optionmenu_size_args)
-        # Place the drop down list in the window
-        vis3_genre2.grid(column=1, row=2)
-        self.vis3_genre2_list.trace('w', self.updateGenre)
 
         kd_label = Label(self, text="The cells below support knowledge discovery in the Movielens dataset. This works by taking in two movies (as IDs), and comparing their genome scores to evaluate how similar they are. This similarity is then outputted, along with a third movie that is similar to both the input movies.", font=("Courier", 14), wraplength=32*10)
         kd_label.grid(column=3, row=0)
