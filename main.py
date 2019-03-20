@@ -800,7 +800,13 @@ class Window(Frame):
 
         # Now Get the tag relevance vectors for these two movies
         tag_relevance_1 = list(self.genome_scores[self.genome_scores['movieId'] == movie1_id]['relevance'])
+        if(len(tag_relevance_1) == 0):
+            self.kd_movie_output_var.set("Error: no genome data found for movie 1 ID. Please choose another.")
+            return
         tag_relevance_2 = list(self.genome_scores[self.genome_scores['movieId'] == movie2_id]['relevance'])
+        if(len(tag_relevance_2) == 0):
+            self.kd_movie_output_var.set("Error: no genome data found for movie 2 ID. Please choose another.")
+            return
 
         # Compute the SSD of the two vectors
         def ssd(vec1, vec2):
@@ -810,6 +816,7 @@ class Window(Frame):
             for i in range(len(vec1)):
                 vec_sum += (vec1[i] - vec2[i])**2
             return vec_sum
+
         tag_ssd = ssd(tag_relevance_1, tag_relevance_2)
 
         # Find a movie other than these two with a lower ssd to both movies, i.e. it 'lies between' the two movies
