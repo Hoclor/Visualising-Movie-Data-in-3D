@@ -223,7 +223,7 @@ def get_genre_popularity_by_releases_over_time(movies):
 if __name__ == '__main__':
     movies, tags, ratings = read_dataset()
 
-    pop_time = get_genre_popularity_over_time(movies, ratings)
+    pop_time = get_genre_popularity_by_releases_over_time(movies)
     # Find the maximum pop for each year,sum pop for each year, and the maximum normalised pop ever
     max_norm = 0
     print("Year, sum, max")
@@ -233,7 +233,7 @@ if __name__ == '__main__':
         year_max_norm = year_max/year_sum
         if year_max_norm > max_norm:
             max_norm = year_max_norm
-        print(year+1996, year_sum, year_max)
+        print(year+1930, year_sum, year_max)
     print("Max norm:", max_norm)
 
     # aggregate_ratings = get_ratings_stats(movies, ratings)
