@@ -80,7 +80,7 @@ class Window(Frame):
         glyphButton.grid(column=2, row=3)
 
         # Create a button instance
-        testButton = Button(self, text="Test", command=self.vtk_movie_popularity_circular_chart, **button_size_args)
+        testButton = Button(self, text="Test", command=self.test, **button_size_args)
         # Place the button in the window
         testButton.grid(column=3, row=2)
 
@@ -100,7 +100,7 @@ class Window(Frame):
         self.vis1_rating_list.trace('w', self.updateMetric)
 
         # Create a button instance
-        genreGraphButton = Button(self, text="Visualization 2:\nHow different Genres are connected through movies\n\n(Select genres below, or run with none selected)", command=self.vtk_genre_graph, **button_size_args)
+        genreGraphButton = Button(self, text="Visualization 2:\nHow different Genres are connected through movies\n\n(Optional: Select one or two genres below)", command=self.vtk_genre_graph, **button_size_args)
         # Place the button in the window
         genreGraphButton.grid(column=1, row=0)
 
@@ -126,6 +126,24 @@ class Window(Frame):
         vis2_genre2.grid(column=1, row=2)
         self.vis2_genre2_list.trace('w', self.updateGenre)
 
+        # Create a button instance
+        circularChartButton = Button(self, text="Visualization 3:\nHow the popularity of Genres changes over time\n\n(Optional: Select a year below to view a static snapshot, or 'Total' to view overall data)", command=self.vtk_movie_popularity_circular_chart, **button_size_args)
+        # Place the button in the window
+        circularChartButton.grid(column=2, row=0)
+
+        # Create a drop down list to choose the year for the above visualization
+        self.vis3_year_list = StringVar(self.master)
+        self.vis3_year_list.set('Animation')
+
+        year_options = [i for i in range(1996, 2019)]
+        year_options.insert(0, 'Animation')
+        year_options.insert(1, 'Total')
+
+        vis3_year = OptionMenu(self, self.vis3_year_list, *year_options)
+        vis3_year.config(**optionmenu_size_args)
+        # Place the drop down list in the window
+        vis3_year.grid(column=2, row=1)
+        self.vis3_year_list.trace('w', self.updateYear)
 
     # Gathering of data
     def init_data(self):
@@ -158,6 +176,9 @@ class Window(Frame):
             print("Unexpected metric value: {}".format(metric_string))
 
     def updateGenre(self, *args):
+        pass
+
+    def updateYear(self, *args):
         pass
 
     def test(self):
