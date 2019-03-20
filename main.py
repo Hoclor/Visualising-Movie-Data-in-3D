@@ -74,21 +74,6 @@ class Window(Frame):
         quitButton.grid(column=cols-1, row=rows-1)
 
         # Create a button instance
-        gridButton = Button(self, text="Grid 2D", command=self.grid_2D, **self.button_size_args)
-        # Place the button in the window
-        gridButton.grid(column=0, row=3)
-
-        # Create a button instance
-        ptCloudButton = Button(self, text="Point Cloud", command=self.point_cloud, **self.button_size_args)
-        # Place the button in the window
-        ptCloudButton.grid(column=1, row=3)
-
-        # Create a button instance
-        testButton = Button(self, text="Test", command=self.vtk_movie_popularity_by_releases_circular_chart, **self.button_size_args)
-        # Place the button in the window
-        testButton.grid(column=3, row=2)
-
-        # Create a button instance
         ratingsByGenreButton = Button(self, text="Visualization 1:\nRating distribution statistics by Genre\n\n(Select metric below)", command=self.vtk_ratings_by_genre, **self.button_size_args)
         # Place the button in the window
         ratingsByGenreButton.grid(column=0, row=0)
