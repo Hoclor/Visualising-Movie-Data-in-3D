@@ -108,7 +108,7 @@ def get_ratings_stats(movies, ratings):
     # Return the new dataframe holding aggregated ratings data
     return aggregate_ratings
 
-def get_rating_stats_by_genre(movies, ratings, genres):
+def get_rating_stats_by_genre(movies, aggregate_ratings, genres):
     print("Producing rating distributions")
     # Construct a list of number of movies for each genre in each rating 'bucket' (0.5 to 1, 1 to 1.5, ..., 4.5 to 5.0), inclusive below (except 4.5 to 5.0 range which is inclusive on both sides)
     metrics = ['min_rating', 'max_rating', 'mean_rating', 'median_rating']
