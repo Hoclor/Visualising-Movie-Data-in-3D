@@ -221,16 +221,3 @@ def get_genre_popularity_by_releases_over_time(movies):
             year_dict[g] = counts
         popularity.append(year_dict)
     return popularity
-
-def get_genre_overlap(movies, genres):
-    # Produce a list of lists counting how many movies exist that have both genres for each pair of genres
-    result = {}
-    for index, g in enumerate(genres[:-1]):
-        for index2, g2 in enumerate(genres[index + 1:]):
-            result[(g, g2)] = len(movies[movies[g] & movies[g2]])
-    # Do the same for triplets of genres
-    for index, g in enumerate(genres[:-2]):
-        for index2, g2 in enumerate(genres[index + 1:-1], index + 1):
-            for index3, g3 in enumerate(genres[index2 + 1:]):
-                result[(g, g2, g3)] = len(movies[movies[g] & movies[g2] & movies[g3]])
-    return result
