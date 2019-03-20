@@ -9,7 +9,6 @@
 # Plot a 3D scatter plot, one vertex for each genre, edges connecting genres with size correlating to how many movies have both those genres
 # Computational steering: Select two genres, plot 3D scatter plot of movies with those two genres and a third (for every other genre)
 #
-
 import pandas as pd
 import numpy as np
 from tkinter import *
@@ -18,12 +17,15 @@ import time
 
 # Data extraction and filtering
 
-def read_dataset():
+def read_dataset(nrows= 30000000):
+    if nrows <= 27000000:
+        print("Reading and filtering limited dataset from csv files")
+    else:
     print("Reading and filtering dataset from csv files")
     # Read the movielens dataset in using pandas
-    movies = pd.read_csv('movielens_dataset/movies.csv')
-    tags = pd.read_csv('movielens_dataset/tags.csv')
-    ratings = pd.read_csv('movielens_dataset/ratings.csv')
+    movies = pd.read_csv('movielens_dataset/movies.csv', nrows=nrows)
+    tags = pd.read_csv('movielens_dataset/tags.csv', nrows=nrows)
+    ratings = pd.read_csv('movielens_dataset/ratings.csv', nrows=nrows)
 
     # Clean the data - only tags has some null values
     tags = tags.dropna()
