@@ -80,7 +80,7 @@ class Window(Frame):
         glyphButton.grid(column=2, row=3)
 
         # Create a button instance
-        testButton = Button(self, text="Test", command=self.vtk_movie_popularity_circ_chart, **button_size_args)
+        testButton = Button(self, text="Test", command=self.vtk_movie_popularity_circular_chart, **button_size_args)
         # Place the button in the window
         testButton.grid(column=3, row=2)
 
@@ -380,6 +380,108 @@ class Window(Frame):
         renderer.AddActor(line_actor)
         renderer.AddActor(points_actor)
         renderer.AddActor(triangulated_actor)
+        renderer.SetBackground(colors.GetColor3d("SlateGray")) # Background color green
+
+        # Render and interact
+        renderWindow.Render()
+        renderWindowInteractor.Start()
+
+    def vtk_movie_popularity_circular_chart(self):
+        if len(self.genre_popularity) == 0:
+            self.genre_popularity = de.get_genre_popularity_over_time(self.movies, self.ratings)
+        # Compute unit vectors for all 18 genre delimeter lines
+        unit_vectors = []
+        i = 0
+        while i < 360:
+            unit_vectors.append([np.cos(i*np.pi/180), np.sin(i*np.pi/180)])
+            i += 360/19
+        # Remove the last unit vector added due to floating point rounding errors
+        unit_vectors = unit_vectors[:-1]
+
+        # Draw the delimeter lines
+        lines = vtk.vtkCellArray()
+        colors = vtk.vtkNamedColors()
+        points = vtk.vtkPoints()
+        # First point is origin
+        points.InsertNextPoint(0, 0, 0)
+        for index, unit_vector in enumerate(unit_vectors):
+            z = 0 # Scale z axis up by 10
+            points.InsertNextPoint(unit_vector[0], unit_vector[1], 0)
+            line = vtk.vtkLine()
+            line.GetPointIds().SetId(0, 0)
+            line.GetPointIds().SetId(1, index + 1)
+            lines.InsertNextCell(line)
+
+        # Generate a point on each unit vector that corresponds to that unit vector's genre's popularity for a given time
+        year = 1997 - 1996 # year 1996 = index 0
+        year_popularity = self.genre_popularity[year] # Get the dict for this year
+        year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
+        year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
+        normalised_year_popularity = list(map(lambda n : [n[0], (5*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
+        # The maximum normalised_year_pop ever is <0.2, so multiply all pop values by 5 (to make the plot more readable)
+
+        # Create points on each unit vector proportionately distant from origin to this genre's popularity for that year
+        pop_lines = vtk.vtkCellArray()
+        pop_points = vtk.vtkPoints()
+        for index, unit_vector in enumerate(unit_vectors):
+            pop_points.InsertNextPoint(unit_vector[0]*normalised_year_popularity[index][1], unit_vector[1]*normalised_year_popularity[index][1], 0)
+            if index > 0:
+                line = vtk.vtkLine()
+                line.GetPointIds().SetId(0, index - 1)
+                line.GetPointIds().SetId(1, index)
+                pop_lines.InsertNextCell(line)
+        # Add the last line that joins the last pop_point to the first pop_point
+        line = vtk.vtkLine()
+        line.GetPointIds().SetId(0, index)
+        line.GetPointIds().SetId(1, 0)
+        pop_lines.InsertNextCell(line)
+        
+        # Create a Polydata to store all the lines in
+        linesPolyData = vtk.vtkPolyData()
+        popLinesPolyData = vtk.vtkPolyData()
+
+        # Add the points and lines to the dataset
+        linesPolyData.SetPoints(points)
+        linesPolyData.SetLines(lines)
+        popLinesPolyData.SetPoints(pop_points)
+        popLinesPolyData.SetLines(pop_lines)
+
+        # Create a mapper and actor for the lines
+        line_mapper = vtk.vtkPolyDataMapper()
+        line_mapper.SetInputData(linesPolyData)
+        pop_line_mapper = vtk.vtkPolyDataMapper()
+        pop_line_mapper.SetInputData(popLinesPolyData)
+
+        line_actor = vtk.vtkActor()
+        line_actor.SetMapper(line_mapper)
+        line_actor.GetProperty().SetLineWidth(1)
+        line_actor.GetProperty().SetColor(colors.GetColor3d("Black"))
+
+        pop_line_actor = vtk.vtkActor()
+        pop_line_actor.SetMapper(pop_line_mapper)
+        pop_line_actor.GetProperty().SetLineWidth(3)
+        pop_line_actor.GetProperty().SetColor(colors.GetColor3d("Red"))
+        
+        # Create a mapper and actor for the points
+        # points_mapper = vtk.vtkPolyDataMapper()
+        # points_mapper.SetInputConnection(glyphFilter.GetOutputPort())
+
+        # points_actor = vtk.vtkActor()
+        # points_actor.SetMapper(points_mapper)
+        # points_actor.GetProperty().SetPointSize(3)
+        # points_actor.GetProperty().SetColor(colors.GetColor3d("Black"))
+
+        # Create a renderer, render window, and interactor
+        renderer = vtk.vtkRenderer()
+        renderWindow = vtk.vtkRenderWindow()
+        renderWindow.AddRenderer(renderer)
+        renderWindowInteractor = vtk.vtkRenderWindowInteractor()
+        renderWindowInteractor.SetRenderWindow(renderWindow)
+
+        # Add the actors to the scene
+        # renderer.AddActor(label_actor)
+        renderer.AddActor(line_actor)
+        renderer.AddActor(pop_line_actor)
         renderer.SetBackground(colors.GetColor3d("SlateGray")) # Background color green
 
         # Render and interact
