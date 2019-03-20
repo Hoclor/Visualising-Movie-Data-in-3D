@@ -204,10 +204,6 @@ class Window(Frame):
         self.genre_popularity_by_reviews = de.get_genre_popularity_by_reviews_over_time(self.movies, self.ratings)
         self.genre_popularity_by_releases = de.get_genre_popularity_by_releases_over_time(self.movies)
 
-
-        self.genre_overlap = de.get_genre_overlap(self.movies, self.genres)
-        self.genre_counts = de.get_genre_counts(self.movies, self.genres)
-
         self.genome_scores, self.genome_tags = de.get_genome_data()
 
         print("Done initializing data")
