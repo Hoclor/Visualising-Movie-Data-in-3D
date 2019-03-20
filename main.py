@@ -826,14 +826,20 @@ class Window(Frame):
         shuffled = self.movies['movieId'].copy()
         shuffled = shuffled.values
         random.shuffle(shuffled)
+        count = 0
         for movieId in shuffled:
+            count += 1
+            if(count > 1000):
+                # Write 'failed to find' output to self.kd_movie_output_var
+                self.kd_movie_output_var.set("Difference index (lower is more similar): {:.2f}\nFailed to find a similar movie found in 1000 attempts.".format(tag_ssd))
             this_tag = list(self.genome_scores[self.genome_scores['movieId'] == movieId]['relevance'])
 
             ssd_1 = ssd(this_tag, tag_relevance_1)
             ssd_2 = ssd(this_tag, tag_relevance_2)
-            if(ssd_1 < tag_ssd and ssd_2 < tag_ssd):
+            if ssd_1 == -1 or ssd_2 == -1:
+                continue
+            if(ssd_1 < tag_ssd + 1 and ssd_2 < tag_ssd + 1):
                 break
-
         # Get the movie's title and display it in the output var
         match_name = self.movies.loc[self.movies['movieId'] == movieId, 'title'].values[0]
         movie1_name = self.movies.loc[self.movies['movieId'] == movie1_id, 'title'].values[0]
