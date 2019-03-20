@@ -828,6 +828,9 @@ class Window(Frame):
         random.shuffle(shuffled)
         count = 0
         for movieId in shuffled:
+            if movieId == movie1_id or movieId == movie2_id:
+                # Don't return the same movie as was input
+                continue
             count += 1
             if(count > 500):
                 # Write 'failed to find' output to self.kd_movie_output_var
