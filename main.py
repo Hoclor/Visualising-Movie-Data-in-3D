@@ -4,7 +4,6 @@ import numpy as np
 from tkinter import *
 import vtk
 from vtk.util.colors import *
-
 import data_extraction as de
 
 # Create the GUI
