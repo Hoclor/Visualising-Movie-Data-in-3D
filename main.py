@@ -814,6 +814,8 @@ class Window(Frame):
 
         # Compute the SSD of the two vectors
         def ssd(vec1, vec2):
+            if(len(vec1) != len(vec2) or len(vec1) == 0):
+                return -1
             vec_sum = 0
             for i in range(len(vec1)):
                 vec_sum += (vec1[i] - vec2[i])**2
