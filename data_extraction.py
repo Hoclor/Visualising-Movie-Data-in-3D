@@ -21,7 +21,7 @@ def read_dataset(nrows= 30000000):
     if nrows <= 27000000:
         print("Reading and filtering limited dataset from csv files")
     else:
-    print("Reading and filtering dataset from csv files")
+        print("Reading and filtering dataset from csv files")
     # Read the movielens dataset in using pandas
     movies = pd.read_csv('movielens_dataset/movies.csv', nrows=nrows)
     tags = pd.read_csv('movielens_dataset/tags.csv', nrows=nrows)
