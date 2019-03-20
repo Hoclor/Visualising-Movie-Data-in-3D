@@ -24,9 +24,14 @@ class Window(Frame):
         # Default framerate
         self.framerate = 5
         # Default starting year
-        self.year = 1930
-        # Default metric
-        self.popMetric = 'Releases'
+        self.year = 1996
+
+        # Vis 3
+        # Default framerate
+        self.framerate_vis3 = 10
+        # Default starting year
+        self.year_vis3 = 1930
+
 
     # Creation of init_window
     def init_window(self, rows=5, cols=5):
@@ -66,6 +71,8 @@ class Window(Frame):
             for col in range(cols):
                 Label(self, text='').grid(column=col, row=row)
 
+
+        ##### Visualization 1 #####
         # Create a button instance
         quitButton = Button(self, text="Quit", command=self.client_exit, **self.button_size_args)
         # Place the button in the window
@@ -86,18 +93,19 @@ class Window(Frame):
         vis1_rating.grid(column=0, row=1)
         self.vis1_rating_list.trace('w', self.updateMetric)
 
+
+        ##### Visualization 2 #####
         # Create a button instance
-        circularChartButton = Button(self, text="Visualization 2:\nHow the relative popularity of Genres changes over time\n(Optional: Select a year and framerate below)\nSelect the metric:\n(releases (1930-2018) or reviews (1996-2018))", command=self.vtk_pop_handler, **self.button_size_args)
+        circularChartButton = Button(self, text="Visualization 2:\nHow the relative popularity of Genres in reviews changes over time\n(Optional: Select a year (1996-2018) and framerate below)", command=self.vtk_movie_popularity_by_reviews_circular_chart, **self.button_size_args)
         # Place the button in the window
         circularChartButton.grid(column=1, row=0)
 
         # Create a drop down list to choose the year for the above visualization
         self.vis2_year_list = StringVar(self.master)
-        self.vis2_year_list.set('1930')
+        self.vis2_year_list.set('1996')
 
-        year_options = [str(i) for i in range(1930, 2019, 10)]
+        year_options = [str(i) for i in range(1996, 2019)]
         year_options.insert(0, 'Total')
-        year_options.append('2019')
 
         vis2_year = OptionMenu(self, self.vis2_year_list, *year_options)
         vis2_year.config(**self.optionmenu_size_args)
@@ -116,16 +124,40 @@ class Window(Frame):
         vis2_framerate.grid(column=1, row=2)
         self.vis2_framerate_list.trace('w', self.updateFramerate)
 
-        # Create a drop down list to choose the metric for the above visualization
-        self.vis2_metric_list = StringVar(self.master)
-        self.vis2_metric_list.set('Releases')
 
-        vis2_metric = OptionMenu(self, self.vis2_metric_list, "Releases", "Reviews")
-        vis2_metric.config(**self.optionmenu_size_args)
+        ##### Visualization 3 #####
+        # Create a button instance
+        circularChartButton_releases = Button(self, text="Visualization 3:\nHow the relative popularity Genres in released movies changes over time\n(Optional: Select a year (1930-2018) and framerate below)", command=self.vtk_movie_popularity_by_releases_circular_chart, **self.button_size_args)
+        # Place the button in the window
+        circularChartButton_releases.grid(column=2, row=0)
+
+        # Create a drop down list to choose the year for the above visualization
+        self.vis3_year_list = StringVar(self.master)
+        self.vis3_year_list.set('1930')
+
+        year_options_vis3 = [str(i) for i in range(1930, 2019, 10)]
+        year_options_vis3.insert(0, 'Total')
+        year_options_vis3.append('2018')
+
+        vis3_year = OptionMenu(self, self.vis3_year_list, *year_options_vis3)
+        vis3_year.config(**self.optionmenu_size_args)
         # Place the drop down list in the window
-        vis2_metric.grid(column=1, row=3)
-        self.vis2_metric_list.trace('w', self.updatePopMetric)
+        vis3_year.grid(column=2, row=1)
+        self.vis3_year_list.trace('w', self.updateYear_vis3)
 
+        # Create a drop down list to choose the year for the above visualization
+        self.vis3_framerate_list = StringVar(self.master)
+        self.vis3_framerate_list.set('10 FPS')
+        framerate_options = ['Static', '1 FPS', '2 FPS', '3 FPS', '5 FPS', '10 FPS', '20 FPS', 'One Loop per Second']
+
+        vis3_framerate = OptionMenu(self, self.vis3_framerate_list, *framerate_options)
+        vis3_framerate.config(**self.optionmenu_size_args)
+        # Place the drop down list in the window
+        vis3_framerate.grid(column=2, row=2)
+        self.vis3_framerate_list.trace('w', self.updateFramerate_vis3)
+
+
+        ##### Knowledge discovery #####
         kd_label = Label(self, text="The cells below support knowledge discovery in the Movielens dataset. This works by taking in two movies (as IDs), and comparing their genome scores to evaluate how similar they are. This similarity is then outputted, along with a third movie that is similar to both the input movies.", font=("Courier", 14), wraplength=32*10)
         kd_label.grid(column=3, row=0)
 
@@ -206,9 +238,11 @@ class Window(Frame):
 
     def updateYear(self, *args):
         year = self.vis2_year_list.get()
-        # Update the displayed value - necessary if this is called directly (from updatePopMetric)
-        self.vis2_year_list.set(year)
         self.year = 0 if year == 'Total' else int(year)
+
+    def updateYear_vis3(self, *args):
+        year = self.vis3_year_list.get()
+        self.year_vis3 = 0 if year == 'Total' else int(year)
 
     def updateFramerate(self, *args):
         val = self.vis2_framerate_list.get()
@@ -216,38 +250,11 @@ class Window(Frame):
         rates = {'St': 0, '1 ': 1, '2 ': 2, '3 ': 3, '5 ': 5, '10': 10, '20': 20, 'On': -1}
         self.framerate = rates[val[0:2]]
 
-    def updatePopMetric(self, *args):
-        self.popMetric = self.vis2_metric_list.get()
-        if self.popMetric == 'Reviews':
-            # Replace the year selection button
-            # Create a drop down list to choose the year for the above visualization
-            self.vis2_year_list = StringVar(self.master)
-            self.vis2_year_list.set('1996')
-
-            year_options = [str(i) for i in range(1996, 2019)]
-            year_options.insert(0, 'Total')
-
-            vis2_year = OptionMenu(self, self.vis2_year_list, *year_options)
-            vis2_year.config(**self.optionmenu_size_args)
-            # Place the drop down list in the window
-            vis2_year.grid(column=1, row=1)
-            self.vis2_year_list.trace('w', self.updateYear)
-        else:
-            # Create a drop down list to choose the year for the above visualization
-            self.vis2_year_list = StringVar(self.master)
-            self.vis2_year_list.set('1930')
-
-            year_options = [str(i) for i in range(1930, 2019, 10)]
-            year_options.insert(0, 'Total')
-            year_options.append('2019')
-
-            vis2_year = OptionMenu(self, self.vis2_year_list, *year_options)
-            vis2_year.config(**self.optionmenu_size_args)
-            # Place the drop down list in the window
-            vis2_year.grid(column=1, row=1)
-            self.vis2_year_list.trace('w', self.updateYear)
-        # call the updateYear function
-        self.updateYear()
+    def updateFramerate_vis3(self, *args):
+        val = self.vis3_framerate_list.get()
+        # Dict holding framerates depending on first two character of val
+        rates = {'St': 0, '1 ': 1, '2 ': 2, '3 ': 3, '5 ': 5, '10': 10, '20': 20, 'On': -1}
+        self.framerate_vis3 = rates[val[0:2]]
 
     def updateMovie1(self, *args):
         pass # Do nothing
@@ -454,12 +461,6 @@ class Window(Frame):
         renderWindow.Render()
         renderWindowInteractor.Start()
 
-    def vtk_pop_handler(self):
-        if self.popMetric == "Reviews":
-            self.vtk_movie_popularity_by_reviews_circular_chart()
-        else:
-            self.vtk_movie_popularity_by_releases_circular_chart()
-
     def vtk_movie_popularity_by_reviews_circular_chart(self):
         # Compute unit vectors for all 18 genre delimeter lines
         unit_vectors = []
@@ -604,7 +605,7 @@ class Window(Frame):
 
         # Only set up animation if year != -1 (i.e. don't animate 'Total' display) and if framerate > 0
         if year >= 0 and self.framerate != 0:
-            cb = vtkTimerCallback_vis3a(year)
+            cb = vtkTimerCallback_vis2(year)
             # Set all necessary data as fields in instance
             cb.line_actor = pop_line_actor
             cb.text_actor = txt
@@ -679,7 +680,7 @@ class Window(Frame):
         label_actor.SetMapper(label_mapper)
 
         # Generate a point on each unit vector that corresponds to that unit vector's genre's popularity for a given time
-        year = self.year - 1930 # year 1930 = index 0
+        year = self.year_vis3 - 1930 # year 1930 = index 0
         if year < 0:
             # Total was set, so get the overall data for all years
             year_popularity = {genre: sum([self.genre_popularity_by_releases[y][genre] for y in range(len(self.genre_popularity_by_releases))]) for genre in self.genre_popularity_by_releases[0]} # Get the dict for this year
@@ -765,19 +766,19 @@ class Window(Frame):
         renderWindowInteractor.Initialize() # Initialize first, then create timer events
 
         # Only set up animation if year != -1 (i.e. don't animate 'Total' display) and if framerate > 0
-        if year >= 0 and self.framerate != 0:
-            cb = vtkTimerCallback_vis3b(year)
+        if year >= 0 and self.framerate_vis3 != 0:
+            cb = vtkTimerCallback_vis3(year)
             # Set all necessary data as fields in instance
             cb.line_actor = pop_line_actor
             cb.text_actor = txt
             cb.genre_popularity = self.genre_popularity_by_releases
             cb.unit_vectors = unit_vectors
             renderWindowInteractor.AddObserver('TimerEvent', cb.execute)
-            if self.framerate == -1:
+            if self.framerate_vis3 == -1:
                 # Set framerate to display the entire loop in 1s
                 framerate = 1000//90
             else:
-                framerate = 1000//self.framerate
+                framerate = 1000//self.framerate_vis3
             timerId = renderWindowInteractor.CreateRepeatingTimer(framerate)
 
         # Start the interaction and timer
@@ -850,8 +851,8 @@ class Window(Frame):
         # Write output to self.kd_movie_output_var
         self.kd_movie_output_var.set("Difference index (lower is more similar): {:.2f}\nFor '{}' and '{}'\nA similar movie: {} (ID: {})".format(tag_ssd, movie1_name, movie2_name, match_name, movieId))
 
-# Class used to animate visualization 3a (genre popularity by reviews)
-class vtkTimerCallback_vis3a():
+# Class used to animate visualization 2 (genre popularity by reviews)
+class vtkTimerCallback_vis2():
     def __init__(self, start_year = 1996):
         self.timer_count = start_year
     def execute(self, obj, event):
@@ -898,8 +899,8 @@ class vtkTimerCallback_vis3a():
         # Render the new frame
         iren.GetRenderWindow().Render()
 
-# Class used to animate visualization 3b (genre popularity by releases)
-class vtkTimerCallback_vis3b():
+# Class used to animate visualization 3 (genre popularity by releases)
+class vtkTimerCallback_vis3():
     def __init__(self, start_year = 1930):
         self.timer_count = start_year
     def execute(self, obj, event):
