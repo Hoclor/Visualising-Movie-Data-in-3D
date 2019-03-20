@@ -553,6 +553,12 @@ class Window(Frame):
         renderWindowInteractor.Start()
 
 
+    def vtk_pop_handler(self):
+        if self.popMetric == "Reviews":
+            self.vtk_movie_popularity_by_reviews_circular_chart()
+        else:
+            self.vtk_movie_popularity_by_releases_circular_chart()
+
     def vtk_movie_popularity_by_reviews_circular_chart(self):
         if len(self.genre_popularity_by_reviews) == 0:
             self.genre_popularity_by_reviews = de.get_genre_popularity_by_reviews_over_time(self.movies, self.ratings)
@@ -616,7 +622,7 @@ class Window(Frame):
         year = self.year - 1996 # year 1996 = index 0
         if year < 0:
             # Total was set, so get the overall data for all years
-            year_popularity = {genre: sum([self.genre_popularity_by_reviews[y][genre] for y in range(len(self.genre_popularity_by_reviews))]) for genre in self.genre_popularity_by_reviews[year]} # Get the dict for this year
+            year_popularity = {genre: sum([self.genre_popularity_by_reviews[y][genre] for y in range(len(self.genre_popularity_by_reviews))]) for genre in self.genre_popularity_by_reviews[0]} # Get the dict for this year
             year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
             year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
             normalised_year_popularity = list(map(lambda n : [n[0], (5*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
@@ -780,7 +786,7 @@ class Window(Frame):
         year = self.year - 1930 # year 1930 = index 0
         if year < 0:
             # Total was set, so get the overall data for all years
-            year_popularity = {genre: sum([self.genre_popularity_by_releases[y][genre] for y in range(len(self.genre_popularity_by_releases))]) for genre in self.genre_popularity_by_releases[year]} # Get the dict for this year
+            year_popularity = {genre: sum([self.genre_popularity_by_releases[y][genre] for y in range(len(self.genre_popularity_by_releases))]) for genre in self.genre_popularity_by_releases[0]} # Get the dict for this year
             year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
             year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
             normalised_year_popularity = list(map(lambda n : [n[0], (3*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
