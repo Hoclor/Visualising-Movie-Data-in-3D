@@ -7,6 +7,102 @@ from vtk.util.colors import *
 
 import data_extraction as de
 
+# Class used to animate visualization 3a (genre popularity by reviews)
+class vtkTimerCallback_vis3a():
+    def __init__(self, start_year = 1996):
+        self.timer_count = start_year
+    def execute(self, obj, event):
+        # Animate the visualization
+        self.timer_count = (self.timer_count + 1) % (2018-1996+1) # Once the entire sequence has been animated, restart from the beginning
+        
+        # Generate a point on each unit vector that corresponds to that unit vector's genre's popularity for a given time
+        year_popularity = self.genre_popularity[self.timer_count] # Get the dict for this year
+        year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
+        year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
+        normalised_year_popularity = list(map(lambda n : [n[0], (5*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
+        # The maximum normalised_year_pop ever is <0.2, so multiply all pop values by 5 (to make the plot more readable)
+
+        # Create points on each unit vector proportionately distant from origin to this genre's popularity for that year
+        pop_lines = vtk.vtkCellArray()
+        pop_points = vtk.vtkPoints()
+        for index, unit_vector in enumerate(self.unit_vectors):
+            pop_points.InsertNextPoint(unit_vector[0]*normalised_year_popularity[index][1], unit_vector[1]*normalised_year_popularity[index][1], 0)
+            if index > 0:
+                line = vtk.vtkLine()
+                line.GetPointIds().SetId(0, index - 1)
+                line.GetPointIds().SetId(1, index)
+                pop_lines.InsertNextCell(line)
+        # Add the last line that joins the last pop_point to the first pop_point
+        line = vtk.vtkLine()
+        line.GetPointIds().SetId(0, index)
+        line.GetPointIds().SetId(1, 0)
+        pop_lines.InsertNextCell(line)
+        # Create a Polydata to store all the lines in
+        popLinesPolyData = vtk.vtkPolyData()
+        # Add the lines to the dataset
+        popLinesPolyData.SetPoints(pop_points)
+        popLinesPolyData.SetLines(pop_lines)
+
+        # Create a mapper and actor for the lines
+        pop_line_mapper = vtk.vtkPolyDataMapper()
+        pop_line_mapper.SetInputData(popLinesPolyData)
+        # Set this new mapper as the mapper
+        self.line_actor.SetMapper(pop_line_mapper)
+        # Update the year text
+        self.text_actor.SetInput(str(self.timer_count + 1996))
+        # Get the interaction object
+        iren = obj
+        # Render the new frame
+        iren.GetRenderWindow().Render()
+
+# Class used to animate visualization 3b (genre popularity by releases)
+class vtkTimerCallback_vis3b():
+    def __init__(self, start_year = 1930):
+        self.timer_count = start_year
+    def execute(self, obj, event):
+        # Animate the visualization
+        self.timer_count = (self.timer_count + 1) % (2018-1930+1) # Once the entire sequence has been animated, restart from the beginning
+        
+        # Generate a point on each unit vector that corresponds to that unit vector's genre's popularity for a given time
+        year_popularity = self.genre_popularity[self.timer_count] # Get the dict for this year
+        year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
+        year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
+        normalised_year_popularity = list(map(lambda n : [n[0], (3*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
+        # The maximum normalised_year_pop ever is <0.33, so multiply all pop values by 3 (to make the plot more readable)
+
+        # Create points on each unit vector proportionately distant from origin to this genre's popularity for that year
+        pop_lines = vtk.vtkCellArray()
+        pop_points = vtk.vtkPoints()
+        for index, unit_vector in enumerate(self.unit_vectors):
+            pop_points.InsertNextPoint(unit_vector[0]*normalised_year_popularity[index][1], unit_vector[1]*normalised_year_popularity[index][1], 0)
+            if index > 0:
+                line = vtk.vtkLine()
+                line.GetPointIds().SetId(0, index - 1)
+                line.GetPointIds().SetId(1, index)
+                pop_lines.InsertNextCell(line)
+        # Add the last line that joins the last pop_point to the first pop_point
+        line = vtk.vtkLine()
+        line.GetPointIds().SetId(0, index)
+        line.GetPointIds().SetId(1, 0)
+        pop_lines.InsertNextCell(line)
+        # Create a Polydata to store all the lines in
+        popLinesPolyData = vtk.vtkPolyData()
+        # Add the lines to the dataset
+        popLinesPolyData.SetPoints(pop_points)
+        popLinesPolyData.SetLines(pop_lines)
+
+        # Create a mapper and actor for the lines
+        pop_line_mapper = vtk.vtkPolyDataMapper()
+        pop_line_mapper.SetInputData(popLinesPolyData)
+        # Set this new mapper as the mapper
+        self.line_actor.SetMapper(pop_line_mapper)
+        # Update the year text
+        self.text_actor.SetInput(str(self.timer_count + 1930))
+        # Get the interaction object
+        iren = obj
+        # Render the new frame
+        iren.GetRenderWindow().Render()
+
 # Create the GUI
 class Window(Frame):
 
@@ -17,9 +113,17 @@ class Window(Frame):
 
         self.init_data()
 
+        # Vis 1
         # Default metric
         self.metric = 'mean_rating'
 
+        # Vis 3
+        # Default framerate
+        self.framerate = 5
+        # Default starting year
+        self.year = 1930
+        # Default metric
+        self.popMetric = 'Releases'
         
     # Creation of init_window
     def init_window(self, rows=5, cols=5):
@@ -29,7 +133,7 @@ class Window(Frame):
         cell_width = 1600//cols
 
         # Set up a dict for button sizing arguments to use for all (standard) buttons
-        button_size_args = {
+        self.button_size_args = {
             'height': 8,
             'width': 32,
             'font': ("Courier", 14),
@@ -37,7 +141,7 @@ class Window(Frame):
             'activebackground': '#666',
             'wraplength': 32*10
         }
-        optionmenu_size_args = {
+        self.optionmenu_size_args = {
             'height': 6,
             'width': 24,
             'font': ("Courier", 12),
@@ -60,32 +164,27 @@ class Window(Frame):
                 Label(self, text='').grid(column=col, row=row)
 
         # Create a button instance
-        quitButton = Button(self, text="Quit", command=self.client_exit, **button_size_args)
+        quitButton = Button(self, text="Quit", command=self.client_exit, **self.button_size_args)
         # Place the button in the window
         quitButton.grid(column=cols-1, row=rows-1)
 
         # Create a button instance
-        gridButton = Button(self, text="Grid 2D", command=self.grid_2D, **button_size_args)
+        gridButton = Button(self, text="Grid 2D", command=self.grid_2D, **self.button_size_args)
         # Place the button in the window
         gridButton.grid(column=0, row=3)
 
         # Create a button instance
-        ptCloudButton = Button(self, text="Point Cloud", command=self.point_cloud, **button_size_args)
+        ptCloudButton = Button(self, text="Point Cloud", command=self.point_cloud, **self.button_size_args)
         # Place the button in the window
         ptCloudButton.grid(column=1, row=3)
 
         # Create a button instance
-        glyphButton = Button(self, text="Glyphs", command=self.glyphs_at_points, **button_size_args)
-        # Place the button in the window
-        glyphButton.grid(column=2, row=3)
-
-        # Create a button instance
-        testButton = Button(self, text="Test", command=self.test, **button_size_args)
+        testButton = Button(self, text="Test", command=self.vtk_movie_popularity_by_releases_circular_chart, **self.button_size_args)
         # Place the button in the window
         testButton.grid(column=3, row=2)
 
         # Create a button instance
-        ratingsByGenreButton = Button(self, text="Visualization 1:\nRating distribution statistics by Genre\n\n(Select metric below)", command=self.vtk_ratings_by_genre, **button_size_args)
+        ratingsByGenreButton = Button(self, text="Visualization 1:\nRating distribution statistics by Genre\n\n(Select metric below)", command=self.vtk_ratings_by_genre, **self.button_size_args)
         # Place the button in the window
         ratingsByGenreButton.grid(column=0, row=0)
 
@@ -94,13 +193,13 @@ class Window(Frame):
         self.vis1_rating_list.set('Mean rating')
 
         vis1_rating = OptionMenu(self, self.vis1_rating_list, "Mean rating", "Median rating", "Highest rating", "Lowest rating")
-        vis1_rating.config(**optionmenu_size_args)
+        vis1_rating.config(**self.optionmenu_size_args)
         # Place the drop down list in the window
         vis1_rating.grid(column=0, row=1)
         self.vis1_rating_list.trace('w', self.updateMetric)
 
         # Create a button instance
-        genreGraphButton = Button(self, text="Visualization 2:\nHow different Genres are connected through movies\n\n(Optional: Select one or two genres below)", command=self.vtk_genre_graph, **button_size_args)
+        genreGraphButton = Button(self, text="Visualization 2:\nHow different Genres are connected through movies\n\n(Optional: Select one or two genres below)", command=self.vtk_genre_graph, **self.button_size_args)
         # Place the button in the window
         genreGraphButton.grid(column=1, row=0)
 
@@ -111,7 +210,7 @@ class Window(Frame):
         self.vis2_genre1_list.set('None')
 
         vis2_genre1 = OptionMenu(self, self.vis2_genre1_list, 'None', *genres)
-        vis2_genre1.config(**optionmenu_size_args)
+        vis2_genre1.config(**self.optionmenu_size_args)
         # Place the drop down list in the window
         vis2_genre1.grid(column=1, row=1)
         self.vis2_genre1_list.trace('w', self.updateGenre)
@@ -121,29 +220,50 @@ class Window(Frame):
         self.vis2_genre2_list.set('None')
 
         vis2_genre2 = OptionMenu(self, self.vis2_genre2_list, 'None', *genres)
-        vis2_genre2.config(**optionmenu_size_args)
+        vis2_genre2.config(**self.optionmenu_size_args)
         # Place the drop down list in the window
         vis2_genre2.grid(column=1, row=2)
         self.vis2_genre2_list.trace('w', self.updateGenre)
 
         # Create a button instance
-        circularChartButton = Button(self, text="Visualization 3:\nHow the popularity of Genres changes over time\n\n(Optional: Select a year below to view a static snapshot, or 'Total' to view overall data)", command=self.vtk_movie_popularity_circular_chart, **button_size_args)
+        circularChartButton = Button(self, text="Visualization 3:\nHow the relative popularity of Genres changes over time\n(Optional: Select a year and framerate below)\nSelect the metric:\n(releases (1930-2018) or reviews (1996-2018))", command=self.vtk_pop_handler, **self.button_size_args)
         # Place the button in the window
         circularChartButton.grid(column=2, row=0)
 
         # Create a drop down list to choose the year for the above visualization
         self.vis3_year_list = StringVar(self.master)
-        self.vis3_year_list.set('Animation')
+        self.vis3_year_list.set('1930')
 
-        year_options = [i for i in range(1996, 2019)]
-        year_options.insert(0, 'Animation')
-        year_options.insert(1, 'Total')
+        year_options = [str(i) for i in range(1930, 2019, 10)]
+        year_options.insert(0, 'Total')
+        year_options.append('2019')
 
         vis3_year = OptionMenu(self, self.vis3_year_list, *year_options)
-        vis3_year.config(**optionmenu_size_args)
+        vis3_year.config(**self.optionmenu_size_args)
         # Place the drop down list in the window
         vis3_year.grid(column=2, row=1)
         self.vis3_year_list.trace('w', self.updateYear)
+
+        # Create a drop down list to choose the year for the above visualization
+        self.vis3_framerate_list = StringVar(self.master)
+        self.vis3_framerate_list.set('5 FPS')
+        framerate_options = ['Static', '1 FPS', '2 FPS', '3 FPS', '5 FPS', '10 FPS', '20 FPS', 'One Loop per Second']
+
+        vis3_framerate = OptionMenu(self, self.vis3_framerate_list, *framerate_options)
+        vis3_framerate.config(**self.optionmenu_size_args)
+        # Place the drop down list in the window
+        vis3_framerate.grid(column=2, row=2)
+        self.vis3_framerate_list.trace('w', self.updateFramerate)
+
+        # Create a drop down list to choose the metric for the above visualization
+        self.vis3_metric_list = StringVar(self.master)
+        self.vis3_metric_list.set('Releases')
+
+        vis3_metric = OptionMenu(self, self.vis3_metric_list, "Releases", "Reviews")
+        vis3_metric.config(**self.optionmenu_size_args)
+        # Place the drop down list in the window
+        vis3_metric.grid(column=2, row=3)
+        self.vis3_metric_list.trace('w', self.updatePopMetric)
 
     # Gathering of data
     def init_data(self):
@@ -153,7 +273,8 @@ class Window(Frame):
 
         self.rating_stats_by_genre = []
 
-        self.genre_popularity = []
+        self.genre_popularity_by_releases = []
+        self.genre_popularity_by_reviews = []
 
         self.genres = ['Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'IMAX', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
 
@@ -179,7 +300,49 @@ class Window(Frame):
         pass
 
     def updateYear(self, *args):
-        pass
+        year = self.vis3_year_list.get()
+        # Update the displayed value - necessary if this is called directly (from updatePopMetric)
+        self.vis3_year_list.set(year)
+        self.year = 0 if year == 'Total' else int(year)
+
+    def updateFramerate(self, *args):
+        val = self.vis3_framerate_list.get()
+        # Dict holding framerates depending on first two character of val
+        rates = {'St': 0, '1 ': 1, '2 ': 2, '3 ': 3, '5 ': 5, '10': 10, '20': 20, 'On': -1}
+        self.framerate = rates[val[0:2]]
+
+    def updatePopMetric(self, *args):
+        self.popMetric = self.vis3_metric_list.get()
+        if self.popMetric == 'Reviews':
+            # Replace the year selection button
+            # Create a drop down list to choose the year for the above visualization
+            self.vis3_year_list = StringVar(self.master)
+            self.vis3_year_list.set('1996')
+
+            year_options = [str(i) for i in range(1996, 2019)]
+            year_options.insert(0, 'Total')
+
+            vis3_year = OptionMenu(self, self.vis3_year_list, *year_options)
+            vis3_year.config(**self.optionmenu_size_args)
+            # Place the drop down list in the window
+            vis3_year.grid(column=2, row=1)
+            self.vis3_year_list.trace('w', self.updateYear)
+        else:
+            # Create a drop down list to choose the year for the above visualization
+            self.vis3_year_list = StringVar(self.master)
+            self.vis3_year_list.set('1930')
+
+            year_options = [str(i) for i in range(1930, 2019, 10)]
+            year_options.insert(0, 'Total')
+            year_options.append('2019')
+
+            vis3_year = OptionMenu(self, self.vis3_year_list, *year_options)
+            vis3_year.config(**self.optionmenu_size_args)
+            # Place the drop down list in the window
+            vis3_year.grid(column=2, row=1)
+            self.vis3_year_list.trace('w', self.updateYear)
+        # call the updateYear function
+        self.updateYear()
 
     def test(self):
         pass
@@ -283,15 +446,6 @@ class Window(Frame):
         glyphFilter.SetInputData(polydata)
         glyphFilter.Update()
 
-        # Draw the horizontal lines
-        # for y in range(height):
-        #     for x in range(width):
-        #         if(x < width - 1):
-        #             line = vtk.vtkLine()
-        #             line.GetPointIds().SetId(0, x + width*y)
-        #             line.GetPointIds().SetId(1, x + width*y + 1)
-        #             lines.InsertNextCell(line)
-
         # Create a Polydata to store all the lines in
         linesPolyData = vtk.vtkPolyData()
 
@@ -387,15 +541,6 @@ class Window(Frame):
         renderWindowInteractor = vtk.vtkRenderWindowInteractor()
         renderWindowInteractor.SetRenderWindow(renderWindow)
 
-        # txt = vtk.vtkTextActor()
-        # txt.SetInput("Text here")
-        # txtprop=txt.GetTextProperty()
-        # txtprop.SetFontFamilyToArial()
-        # txtprop.SetFontSize(18)
-        # txtprop.SetColor(1,1,1)
-        # txt.SetDisplayPosition(20,30)
-        # renderer.AddActor(txt)
-
         # Add the actors to the scene
         renderer.AddActor(label_actor)
         renderer.AddActor(line_actor)
@@ -407,9 +552,10 @@ class Window(Frame):
         renderWindow.Render()
         renderWindowInteractor.Start()
 
-    def vtk_movie_popularity_circular_chart(self):
-        if len(self.genre_popularity) == 0:
-            self.genre_popularity = de.get_genre_popularity_over_time(self.movies, self.ratings)
+
+    def vtk_movie_popularity_by_reviews_circular_chart(self):
+        if len(self.genre_popularity_by_reviews) == 0:
+            self.genre_popularity_by_reviews = de.get_genre_popularity_by_reviews_over_time(self.movies, self.ratings)
         # Compute unit vectors for all 18 genre delimeter lines
         unit_vectors = []
         i = 0
@@ -433,9 +579,51 @@ class Window(Frame):
             line.GetPointIds().SetId(1, index + 1)
             lines.InsertNextCell(line)
 
+        # Add labels to the delimeter lines - each corresponds to a genre
+        # Data structures for labels
+        label_pd = vtk.vtkPolyData()
+        label_points = vtk.vtkPoints()
+        label_verts = vtk.vtkCellArray()
+        label = vtk.vtkStringArray()
+        label.SetName('label')
+        for index, unit_vector in enumerate(unit_vectors):
+            label_points.InsertNextPoint(unit_vector[0]*1.1, unit_vector[1]*1.1, 0)
+            label_verts.InsertNextCell(1)
+            label_verts.InsertCellPoint(index)
+            label.InsertNextValue(self.genres[index])
+
+        label_pd.SetPoints(label_points)
+        label_pd.SetVerts(label_verts)
+        label_pd.GetPointData().AddArray(label)
+
+        hier = vtk.vtkPointSetToLabelHierarchy()
+        hier.SetInputData(label_pd)
+        hier.SetLabelArrayName('label')
+        hier.GetTextProperty().SetColor(0.0, 0.0, 0.0)
+
+        label_mapper = vtk.vtkLabelPlacementMapper()
+        label_mapper.SetInputConnection(hier.GetOutputPort())
+        label_mapper.SetPlaceAllLabels(True)
+        # label_mapper.SetShapeToRoundedRect()
+        # label_mapper.SetBackgroundColor(1.0, 1.0, 0.7)
+        # label_mapper.SetBackgroundOpacity(0.8)
+        # label_mapper.SetMargin(3)
+
+        label_actor = vtk.vtkActor2D()
+        label_actor.SetMapper(label_mapper)
+
         # Generate a point on each unit vector that corresponds to that unit vector's genre's popularity for a given time
-        year = 1997 - 1996 # year 1996 = index 0
-        year_popularity = self.genre_popularity[year] # Get the dict for this year
+        year = self.year - 1996 # year 1996 = index 0
+        if year < 0:
+            # Total was set, so get the overall data for all years
+            year_popularity = {genre: sum([self.genre_popularity_by_reviews[y][genre] for y in range(len(self.genre_popularity_by_reviews))]) for genre in self.genre_popularity_by_reviews[year]} # Get the dict for this year
+            year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
+            year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
+            normalised_year_popularity = list(map(lambda n : [n[0], (5*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
+            print(max([n[1] for n in normalised_year_popularity]))
+            # The maximum normalised_year_pop is <0.2 even when looking at all data combined, so multiply all pop values by 5 (to make the plot more readable)
+        else:
+            year_popularity = self.genre_popularity_by_reviews[year] # Get the dict for this year
         year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
         year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
         normalised_year_popularity = list(map(lambda n : [n[0], (5*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
@@ -461,7 +649,7 @@ class Window(Frame):
         linesPolyData = vtk.vtkPolyData()
         popLinesPolyData = vtk.vtkPolyData()
 
-        # Add the points and lines to the dataset
+        # Add the lines to the dataset
         linesPolyData.SetPoints(points)
         linesPolyData.SetLines(lines)
         popLinesPolyData.SetPoints(pop_points)
@@ -483,14 +671,14 @@ class Window(Frame):
         pop_line_actor.GetProperty().SetLineWidth(3)
         pop_line_actor.GetProperty().SetColor(colors.GetColor3d("Red"))
         
-        # Create a mapper and actor for the points
-        # points_mapper = vtk.vtkPolyDataMapper()
-        # points_mapper.SetInputConnection(glyphFilter.GetOutputPort())
-
-        # points_actor = vtk.vtkActor()
-        # points_actor.SetMapper(points_mapper)
-        # points_actor.GetProperty().SetPointSize(3)
-        # points_actor.GetProperty().SetColor(colors.GetColor3d("Black"))
+        # Write the current year on the bottom-left of the frame
+        txt = vtk.vtkTextActor()
+        txt.SetInput(str(year + 1996) if year >= 0 else '1996-2018')
+        txtprop=txt.GetTextProperty()
+        txtprop.SetFontFamilyToArial()
+        txtprop.SetFontSize(60)
+        txtprop.SetColor(1,1,1)
+        txt.SetDisplayPosition(40,40)
 
         # Create a renderer, render window, and interactor
         renderer = vtk.vtkRenderer()
@@ -500,14 +688,199 @@ class Window(Frame):
         renderWindowInteractor.SetRenderWindow(renderWindow)
 
         # Add the actors to the scene
-        # renderer.AddActor(label_actor)
+        renderer.AddActor(label_actor)
+        renderer.AddActor(txt)
         renderer.AddActor(line_actor)
         renderer.AddActor(pop_line_actor)
         renderer.SetBackground(colors.GetColor3d("SlateGray")) # Background color green
 
         # Render and interact
         renderWindow.Render()
+        renderWindowInteractor.Initialize() # Initialize first, then create timer events
+
+        # Only set up animation if year != -1 (i.e. don't animate 'Total' display) and if framerate > 0
+        if year >= 0 and self.framerate != 0:
+            cb = vtkTimerCallback_vis3a(year)
+            # Set all necessary data as fields in instance
+            cb.line_actor = pop_line_actor
+            cb.text_actor = txt
+            cb.genre_popularity = self.genre_popularity_by_reviews
+            cb.unit_vectors = unit_vectors
+            renderWindowInteractor.AddObserver('TimerEvent', cb.execute)
+            if self.framerate == -1:
+                # Set framerate to display the entire loop in 1s
+                framerate = 1000//23
+            else:
+                framerate = 1000//self.framerate
+            timerId = renderWindowInteractor.CreateRepeatingTimer(framerate)
+
+        # Start the interaction and timer
         renderWindowInteractor.Start()
+
+    def vtk_movie_popularity_by_releases_circular_chart(self):
+        if len(self.genre_popularity_by_releases) == 0:
+            self.genre_popularity_by_releases = de.get_genre_popularity_by_releases_over_time(self.movies)
+        # Compute unit vectors for all 18 genre delimeter lines
+        unit_vectors = []
+        i = 0
+        while i < 360:
+            unit_vectors.append([np.cos(i*np.pi/180), np.sin(i*np.pi/180)])
+            i += 360/19
+        # Remove the last unit vector added due to floating point rounding errors
+        unit_vectors = unit_vectors[:-1]
+
+        # Draw the delimeter lines
+        lines = vtk.vtkCellArray()
+        colors = vtk.vtkNamedColors()
+        points = vtk.vtkPoints()
+        # First point is origin
+        points.InsertNextPoint(0, 0, 0)
+        for index, unit_vector in enumerate(unit_vectors):
+            z = 0 # Scale z axis up by 10
+            points.InsertNextPoint(unit_vector[0], unit_vector[1], 0)
+            line = vtk.vtkLine()
+            line.GetPointIds().SetId(0, 0)
+            line.GetPointIds().SetId(1, index + 1)
+            lines.InsertNextCell(line)
+
+        # Add labels to the delimeter lines - each corresponds to a genre
+        # Data structures for labels
+        label_pd = vtk.vtkPolyData()
+        label_points = vtk.vtkPoints()
+        label_verts = vtk.vtkCellArray()
+        label = vtk.vtkStringArray()
+        label.SetName('label')
+        for index, unit_vector in enumerate(unit_vectors):
+            label_points.InsertNextPoint(unit_vector[0]*1.1, unit_vector[1]*1.1, 0)
+            label_verts.InsertNextCell(1)
+            label_verts.InsertCellPoint(index)
+            label.InsertNextValue(self.genres[index])
+
+        label_pd.SetPoints(label_points)
+        label_pd.SetVerts(label_verts)
+        label_pd.GetPointData().AddArray(label)
+
+        hier = vtk.vtkPointSetToLabelHierarchy()
+        hier.SetInputData(label_pd)
+        hier.SetLabelArrayName('label')
+        hier.GetTextProperty().SetColor(0.0, 0.0, 0.0)
+
+        label_mapper = vtk.vtkLabelPlacementMapper()
+        label_mapper.SetInputConnection(hier.GetOutputPort())
+        label_mapper.SetPlaceAllLabels(True)
+        # label_mapper.SetShapeToRoundedRect()
+        # label_mapper.SetBackgroundColor(1.0, 1.0, 0.7)
+        # label_mapper.SetBackgroundOpacity(0.8)
+        # label_mapper.SetMargin(3)
+
+        label_actor = vtk.vtkActor2D()
+        label_actor.SetMapper(label_mapper)
+
+        # Generate a point on each unit vector that corresponds to that unit vector's genre's popularity for a given time
+        year = self.year - 1930 # year 1930 = index 0
+        if year < 0:
+            # Total was set, so get the overall data for all years
+            year_popularity = {genre: sum([self.genre_popularity_by_releases[y][genre] for y in range(len(self.genre_popularity_by_releases))]) for genre in self.genre_popularity_by_releases[year]} # Get the dict for this year
+            year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
+            year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
+            normalised_year_popularity = list(map(lambda n : [n[0], (3*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
+            print(max([n[1] for n in normalised_year_popularity]))
+            # The maximum normalised_year_pop is <0.33 even when looking at all data combined, so multiply all pop values by 3 (to make the plot more readable)
+        else:
+            year_popularity = self.genre_popularity_by_releases[year] # Get the dict for this year
+            year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
+            year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
+            normalised_year_popularity = list(map(lambda n : [n[0], (3*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
+            # The maximum normalised_year_pop ever is <0.33, so multiply all pop values by 3 (to make the plot more readable)
+
+        # Create points on each unit vector proportionately distant from origin to this genre's popularity for that year
+        pop_lines = vtk.vtkCellArray()
+        pop_points = vtk.vtkPoints()
+        for index, unit_vector in enumerate(unit_vectors):
+            pop_points.InsertNextPoint(unit_vector[0]*normalised_year_popularity[index][1], unit_vector[1]*normalised_year_popularity[index][1], 0)
+            if index > 0:
+                line = vtk.vtkLine()
+                line.GetPointIds().SetId(0, index - 1)
+                line.GetPointIds().SetId(1, index)
+                pop_lines.InsertNextCell(line)
+        # Add the last line that joins the last pop_point to the first pop_point
+        line = vtk.vtkLine()
+        line.GetPointIds().SetId(0, index)
+        line.GetPointIds().SetId(1, 0)
+        pop_lines.InsertNextCell(line)
+        
+        # Create a Polydata to store all the lines in
+        linesPolyData = vtk.vtkPolyData()
+        popLinesPolyData = vtk.vtkPolyData()
+
+        # Add the lines to the dataset
+        linesPolyData.SetPoints(points)
+        linesPolyData.SetLines(lines)
+        popLinesPolyData.SetPoints(pop_points)
+        popLinesPolyData.SetLines(pop_lines)
+
+        # Create a mapper and actor for the lines
+        line_mapper = vtk.vtkPolyDataMapper()
+        line_mapper.SetInputData(linesPolyData)
+        pop_line_mapper = vtk.vtkPolyDataMapper()
+        pop_line_mapper.SetInputData(popLinesPolyData)
+
+        line_actor = vtk.vtkActor()
+        line_actor.SetMapper(line_mapper)
+        line_actor.GetProperty().SetLineWidth(1)
+        line_actor.GetProperty().SetColor(colors.GetColor3d("Black"))
+
+        pop_line_actor = vtk.vtkActor()
+        pop_line_actor.SetMapper(pop_line_mapper)
+        pop_line_actor.GetProperty().SetLineWidth(3)
+        pop_line_actor.GetProperty().SetColor(colors.GetColor3d("Red"))
+
+        # Write the current year on the bottom-left of the frame
+        txt = vtk.vtkTextActor()
+        txt.SetInput(str(year + 1930) if year >= 0 else '1930-2018')
+        txtprop=txt.GetTextProperty()
+        txtprop.SetFontFamilyToArial()
+        txtprop.SetFontSize(60)
+        txtprop.SetColor(1,1,1)
+        txt.SetDisplayPosition(40,40)
+
+        # Create a renderer, render window, and interactor
+        renderer = vtk.vtkRenderer()
+        renderWindow = vtk.vtkRenderWindow()
+        renderWindow.AddRenderer(renderer)
+        renderWindowInteractor = vtk.vtkRenderWindowInteractor()
+        renderWindowInteractor.SetRenderWindow(renderWindow)
+
+        # Add the actors to the scene
+        renderer.AddActor(label_actor)
+        renderer.AddActor(txt)
+        renderer.AddActor(line_actor)
+        renderer.AddActor(pop_line_actor)
+        renderer.SetBackground(colors.GetColor3d("SlateGray")) # Background color green
+
+        # Render and interact
+        renderWindow.Render()
+        renderWindowInteractor.Initialize() # Initialize first, then create timer events
+
+        # Only set up animation if year != -1 (i.e. don't animate 'Total' display) and if framerate > 0
+        if year >= 0 and self.framerate != 0:
+            cb = vtkTimerCallback_vis3b(year)
+            # Set all necessary data as fields in instance
+            cb.line_actor = pop_line_actor
+            cb.text_actor = txt
+            cb.genre_popularity = self.genre_popularity_by_releases
+            cb.unit_vectors = unit_vectors
+            renderWindowInteractor.AddObserver('TimerEvent', cb.execute)
+            if self.framerate == -1:
+                # Set framerate to display the entire loop in 1s
+                framerate = 1000//90
+            else:
+                framerate = 1000//self.framerate
+            timerId = renderWindowInteractor.CreateRepeatingTimer(framerate)
+
+        # Start the interaction and timer
+        renderWindowInteractor.Start()
+
 
     def glyphs_at_points(self):
         colors = vtk.vtkNamedColors()
