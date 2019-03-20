@@ -13,15 +13,16 @@ class Window(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.master = master
+        self.init_data()
+
         self.init_window(cols=4, rows=4) # Use a 5x5 grid in the main frame
 
-        self.init_data()
 
         # Vis 1
         # Default metric
         self.metric = 'mean_rating'
 
-        # Vis 3
+        # Vis 2
         # Default framerate
         self.framerate = 5
         # Default starting year
