@@ -270,11 +270,10 @@ class Window(Frame):
         self.movies, self.tags, self.ratings = de.read_dataset()
 
         self.aggregate_ratings = []
-
         self.rating_stats_by_genre = []
 
-        self.genre_popularity_by_releases = []
-        self.genre_popularity_by_reviews = []
+        self.genre_popularity_by_reviews = de.get_genre_popularity_by_reviews_over_time(self.movies, self.ratings)
+        self.genre_popularity_by_releases = de.get_genre_popularity_by_releases_over_time(self.movies)
 
         self.genres = ['Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'IMAX', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
 
@@ -560,8 +559,6 @@ class Window(Frame):
             self.vtk_movie_popularity_by_releases_circular_chart()
 
     def vtk_movie_popularity_by_reviews_circular_chart(self):
-        if len(self.genre_popularity_by_reviews) == 0:
-            self.genre_popularity_by_reviews = de.get_genre_popularity_by_reviews_over_time(self.movies, self.ratings)
         # Compute unit vectors for all 18 genre delimeter lines
         unit_vectors = []
         i = 0
@@ -724,8 +721,6 @@ class Window(Frame):
         renderWindowInteractor.Start()
 
     def vtk_movie_popularity_by_releases_circular_chart(self):
-        if len(self.genre_popularity_by_releases) == 0:
-            self.genre_popularity_by_releases = de.get_genre_popularity_by_releases_over_time(self.movies)
         # Compute unit vectors for all 18 genre delimeter lines
         unit_vectors = []
         i = 0
@@ -887,7 +882,6 @@ class Window(Frame):
         # Start the interaction and timer
         renderWindowInteractor.Start()
 
-
     def glyphs_at_points(self):
         colors = vtk.vtkNamedColors()
 
@@ -1026,7 +1020,7 @@ class Window(Frame):
         renderWindow.Render()
         renderWindowInteractor.Start()
 
-    def vtk_generate_cube(self):
+    def generate_cube(self):
         # create polygonal cube geometry
         #   here a procedural source object is used,
         #   a source can also be, e.g., a file reader
