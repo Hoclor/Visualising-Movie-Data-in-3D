@@ -14,7 +14,7 @@ class Window(Frame):
         self.master = master
         self.init_data()
 
-        self.init_window(cols=4, rows=4) # Use a 5x5 grid in the main frame
+        self.init_window(cols=4, rows=3) # Use a 3x4 grid in the main frame
 
         # Vis 1
         # Default metric
@@ -73,11 +73,6 @@ class Window(Frame):
 
 
         ##### Visualization 1 #####
-        # Create a button instance
-        quitButton = Button(self, text="Quit", command=self.client_exit, **self.button_size_args)
-        # Place the button in the window
-        quitButton.grid(column=cols-1, row=rows-1)
-
         # Create a button instance
         ratingsByGenreButton = Button(self, text="Visualization 1:\nRating distribution statistics by Genre\n\n(Select metric below)", command=self.vtk_ratings_by_genre, **self.button_size_args)
         # Place the button in the window
@@ -216,9 +211,6 @@ class Window(Frame):
         self.genome_scores, self.genome_tags = de.get_genome_data()
 
         print("Done initializing data")
-
-    def client_exit(self):
-        exit()
 
     def updateMetric(self, *args):
         metric_string = self.vis1_rating_list.get()
