@@ -57,8 +57,14 @@ def read_dataset(nrows= 30000000):
 
     return movies, tags, ratings
 
+def get_genome_data():
+    print("Reading genome data")
+    genome_scores = pd.read_csv('movielens_dataset/genome-scores.csv')
+    genome_tags = pd.read_csv('movielens_dataset/genome-tags.csv')
+    return genome_scores, genome_tags
+
 # Count occurrences of each genre
-def genre_occurrences(movies, genres):
+def get_genre_counts(movies, genres):
     # Dict of genre occurences
     genre_occurrences = {}
     for g in genres:
