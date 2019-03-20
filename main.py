@@ -28,7 +28,7 @@ class Window(Frame):
         self.year = 1930
         # Default metric
         self.popMetric = 'Releases'
-        
+
     # Creation of init_window
     def init_window(self, rows=5, cols=5):
         # Set the title of the master widget
@@ -87,31 +87,6 @@ class Window(Frame):
         vis1_rating.grid(column=0, row=1)
         self.vis1_rating_list.trace('w', self.updateMetric)
 
-        # # Create a button instance
-        # genreGraphButton = Button(self, text="Visualization 2:\nHow different Genres are connected through movies\n\n(Optional: Select one or two genres below)", command=self.vtk_genre_graph, **self.button_size_args)
-        # # Place the button in the window
-        # genreGraphButton.grid(column=1, row=0)
-
-        # # Create two drop down lists to choose genres from for the above visualization
-        # self.vis2_genre1_list = StringVar(self.master)
-        # self.vis2_genre1_list.set('None')
-
-        # vis2_genre1 = OptionMenu(self, self.vis2_genre1_list, 'None', *self.genres)
-        # vis2_genre1.config(**self.optionmenu_size_args)
-        # # Place the drop down list in the window
-        # vis2_genre1.grid(column=1, row=1)
-        # self.vis2_genre1_list.trace('w', self.updateGenre)
-
-        # # Second drop down list
-        # self.vis2_genre2_list = StringVar(self.master)
-        # self.vis2_genre2_list.set('None')
-
-        # vis2_genre2 = OptionMenu(self, self.vis2_genre2_list, 'None', *self.genres)
-        # vis2_genre2.config(**self.optionmenu_size_args)
-        # # Place the drop down list in the window
-        # vis2_genre2.grid(column=1, row=2)
-        # self.vis2_genre2_list.trace('w', self.updateGenre)
-
         # Create a button instance
         circularChartButton = Button(self, text="Visualization 2:\nHow the relative popularity of Genres changes over time\n(Optional: Select a year and framerate below)\nSelect the metric:\n(releases (1930-2018) or reviews (1996-2018))", command=self.vtk_pop_handler, **self.button_size_args)
         # Place the button in the window
@@ -151,6 +126,31 @@ class Window(Frame):
         # Place the drop down list in the window
         vis2_metric.grid(column=1, row=3)
         self.vis2_metric_list.trace('w', self.updatePopMetric)
+
+        # Create a button instance
+        genreGraphButton = Button(self, text="Visualization 3:\nHow different Genres are connected through movies\n\n(Optional: Select one or two genres below)", command=self.vtk_genre_graph, **self.button_size_args)
+        # Place the button in the window
+        genreGraphButton.grid(column=1, row=0)
+
+        # Create two drop down lists to choose genres from for the above visualization
+        self.vis3_genre1_list = StringVar(self.master)
+        self.vis3_genre1_list.set('None')
+
+        vis3_genre1 = OptionMenu(self, self.vis3_genre1_list, 'None', *self.genres)
+        vis3_genre1.config(**self.optionmenu_size_args)
+        # Place the drop down list in the window
+        vis3_genre1.grid(column=1, row=1)
+        self.vis3_genre1_list.trace('w', self.updateGenre)
+
+        # Second drop down list
+        self.vis3_genre2_list = StringVar(self.master)
+        self.vis3_genre2_list.set('None')
+
+        vis3_genre2 = OptionMenu(self, self.vis3_genre2_list, 'None', *self.genres)
+        vis3_genre2.config(**self.optionmenu_size_args)
+        # Place the drop down list in the window
+        vis3_genre2.grid(column=1, row=2)
+        self.vis3_genre2_list.trace('w', self.updateGenre)
 
         kd_label = Label(self, text="The cells below support knowledge discovery in the Movielens dataset. This works by taking in two movies (as IDs), and comparing their genome scores to evaluate how similar they are. This similarity is then outputted, along with a third movie that is similar to both the input movies.", font=("Courier", 14), wraplength=32*10)
         kd_label.grid(column=3, row=0)
@@ -483,7 +483,6 @@ class Window(Frame):
         renderWindow.Render()
         renderWindowInteractor.Start()
 
-
     def vtk_pop_handler(self):
         if self.popMetric == "Reviews":
             self.vtk_movie_popularity_by_reviews_circular_chart()
@@ -604,7 +603,7 @@ class Window(Frame):
         pop_line_actor.SetMapper(pop_line_mapper)
         pop_line_actor.GetProperty().SetLineWidth(3)
         pop_line_actor.GetProperty().SetColor(colors.GetColor3d("Red"))
-        
+
         # Write the current year on the bottom-left of the frame
         txt = vtk.vtkTextActor()
         txt.SetInput(str(year + 1996) if year >= 0 else '1996-2018')
@@ -876,7 +875,7 @@ class vtkTimerCallback_vis3a():
     def execute(self, obj, event):
         # Animate the visualization
         self.timer_count = (self.timer_count + 1) % (2018-1996+1) # Once the entire sequence has been animated, restart from the beginning
-
+        
         # Generate a point on each unit vector that corresponds to that unit vector's genre's popularity for a given time
         year_popularity = self.genre_popularity[self.timer_count] # Get the dict for this year
         year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
@@ -924,7 +923,7 @@ class vtkTimerCallback_vis3b():
     def execute(self, obj, event):
         # Animate the visualization
         self.timer_count = (self.timer_count + 1) % (2018-1930+1) # Once the entire sequence has been animated, restart from the beginning
-
+        
         # Generate a point on each unit vector that corresponds to that unit vector's genre's popularity for a given time
         year_popularity = self.genre_popularity[self.timer_count] # Get the dict for this year
         year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
