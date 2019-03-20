@@ -21,10 +21,9 @@ import time
 def read_dataset():
     print("Reading and filtering dataset from csv files")
     # Read the movielens dataset in using pandas
-    nrows = 28000000 #TEMP, for testing
-    movies = pd.read_csv('movielens_dataset/movies.csv', nrows=nrows)
-    tags = pd.read_csv('movielens_dataset/tags.csv', nrows=nrows)
-    ratings = pd.read_csv('movielens_dataset/ratings.csv', nrows=nrows)
+    movies = pd.read_csv('movielens_dataset/movies.csv')
+    tags = pd.read_csv('movielens_dataset/tags.csv')
+    ratings = pd.read_csv('movielens_dataset/ratings.csv')
 
     # Clean the data - only tags has some null values
     tags = tags.dropna()
@@ -75,41 +74,39 @@ def get_ratings_stats(movies, ratings):
     # Generate a new dataframe to store the aggregate ratings in
     aggregate_ratings = pd.DataFrame()
     aggregate_ratings['movieId'] = movies['movieId']
+    aggregate_ratings['min_rating'] = 0
+    aggregate_ratings['max_rating'] = 0
+    aggregate_ratings['mean_rating'] = 0
+    aggregate_ratings['median_rating'] = 0
+    aggregate_ratings['std_dev'] = 0
+    aggregate_ratings['number_of_ratings'] = 0
 
-    # Create a list of rankings for each movie by looping over the rankings
-    rating_list = {i:[] for i in aggregate_ratings['movieId'].values}
+    # Join ratings and movies on movieId
+    rm = ratings.join(movies.set_index('movieId'), on='movieId')
 
-    for index, row in ratings.iterrows():
-        # Check that this movie Id exists in the movies database
-        if row['movieId'] in rating_list.keys():
-            rating_list[row['movieId']].append(row['rating'])
-    
-    # Create the aggregate values for each movie with at least 1 rating
-    for key, val in rating_list.items():
-        # Skip this film if it has no rankings
-        if len(val) < 1:
-            aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'number_of_ratings'] = 0
-            continue
-        # Get the lowest and highest values
-        lowest = min(val)
-        highest = max(val)
-        # Get the mean and median
-        mean = np.mean(val)
-        median = np.median(val)
-        # Get the std dev
-        stddev = np.std(val)
-        # Insert the values
-        aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'min_rating'] = lowest
-        aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'max_rating'] = highest
-        aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'mean_rating'] = mean
-        aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'median_rating'] = median
-        aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'std_dev'] = stddev
-        aggregate_ratings.loc[aggregate_ratings['movieId'] == key, 'number_of_ratings'] = len(val)
+    def get_stats(row):
+        id = row['movieId']
+        this_ratings = rm[rm['movieId'] == id]['rating']
+        if len(this_ratings) > 0:
+            row['min_rating', 'max_rating', 'mean_rating', 'median_rating', 'std_dev', 'number_of_ratings'] = \
+                [np.min(this_ratings), np.max(this_ratings), np.mean(this_ratings), np.median(this_ratings), np.std(this_ratings), len(this_ratings)]
+        return row
+
+    aggregate_ratings = aggregate_ratings.apply(get_stats, axis=1)
+
+    # Join movies and ratings on movieId
+    # rm = ratings.join(movies.set_index('movieId'), on='movieId')
+    # # Loop over movieId
+    # for id in aggregate_ratings.movieId.values:
+    #     this_ratings = rm[rm['movieId'] == id]['rating']
+    #     if len(this_ratings) > 0:
+    #         aggregate_ratings.loc[aggregate_ratings['movieId'] == id, ['min_rating', 'max_rating', 'mean_rating', 'median_rating', 'std_dev', 'number_of_ratings']] = \
+    #             [np.min(this_ratings), np.max(this_ratings), np.mean(this_ratings), np.median(this_ratings), np.std(this_ratings), len(this_ratings)]
 
     # Return the new dataframe holding aggregated ratings data
     return aggregate_ratings
 
-def get_rating_stats_by_genre(movies, aggregate_ratings, genres):
+def get_rating_stats_by_genre(movies, ratings, genres):
     print("Producing rating distributions")
     # Construct a list of number of movies for each genre in each rating 'bucket' (0.5 to 1, 1 to 1.5, ..., 4.5 to 5.0), inclusive below (except 4.5 to 5.0 range which is inclusive on both sides)
     metrics = ['min_rating', 'max_rating', 'mean_rating', 'median_rating']
@@ -223,22 +220,9 @@ def get_genre_popularity_by_releases_over_time(movies):
 if __name__ == '__main__':
     movies, tags, ratings = read_dataset()
 
-    pop_time = get_genre_popularity_by_releases_over_time(movies)
-    # Find the maximum pop for each year,sum pop for each year, and the maximum normalised pop ever
-    max_norm = 0
-    print("Year, sum, max")
-    for year in range(len(pop_time)):
-        year_sum = sum(pop_time[year].values())
-        year_max = max(pop_time[year].values())
-        year_max_norm = year_max/year_sum
-        if year_max_norm > max_norm:
-            max_norm = year_max_norm
-        print(year+1930, year_sum, year_max)
-    print("Max norm:", max_norm)
-
-    # aggregate_ratings = get_ratings_stats(movies, ratings)
-    # print(aggregate_ratings.loc[aggregate_ratings['mean_rating'] > 0].head(10))
-    # print()
+    aggregate_ratings = get_ratings_stats(movies, ratings)
+    print(aggregate_ratings.loc[aggregate_ratings['mean_rating'] > 0].head(10))
+    print()
 
     # movies, tags, ratings = read_dataset()
     # genre_list = genre_occurrences(movies)
