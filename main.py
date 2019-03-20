@@ -250,13 +250,10 @@ class Window(Frame):
         self.updateYear()
 
     def updateMovie1(self, *args):
-        pass
+        pass # Do nothing
 
     def updateMovie2(self, *args):
-        pass
-
-    def test(self):
-        pass
+        pass # Do nothing
 
     def vtk_ratings_by_genre(self):
         # Read which metric to use
