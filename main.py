@@ -7,102 +7,6 @@ from vtk.util.colors import *
 
 import data_extraction as de
 
-# Class used to animate visualization 3a (genre popularity by reviews)
-class vtkTimerCallback_vis3a():
-    def __init__(self, start_year = 1996):
-        self.timer_count = start_year
-    def execute(self, obj, event):
-        # Animate the visualization
-        self.timer_count = (self.timer_count + 1) % (2018-1996+1) # Once the entire sequence has been animated, restart from the beginning
-        
-        # Generate a point on each unit vector that corresponds to that unit vector's genre's popularity for a given time
-        year_popularity = self.genre_popularity[self.timer_count] # Get the dict for this year
-        year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
-        year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
-        normalised_year_popularity = list(map(lambda n : [n[0], (5*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
-        # The maximum normalised_year_pop ever is <0.2, so multiply all pop values by 5 (to make the plot more readable)
-
-        # Create points on each unit vector proportionately distant from origin to this genre's popularity for that year
-        pop_lines = vtk.vtkCellArray()
-        pop_points = vtk.vtkPoints()
-        for index, unit_vector in enumerate(self.unit_vectors):
-            pop_points.InsertNextPoint(unit_vector[0]*normalised_year_popularity[index][1], unit_vector[1]*normalised_year_popularity[index][1], 0)
-            if index > 0:
-                line = vtk.vtkLine()
-                line.GetPointIds().SetId(0, index - 1)
-                line.GetPointIds().SetId(1, index)
-                pop_lines.InsertNextCell(line)
-        # Add the last line that joins the last pop_point to the first pop_point
-        line = vtk.vtkLine()
-        line.GetPointIds().SetId(0, index)
-        line.GetPointIds().SetId(1, 0)
-        pop_lines.InsertNextCell(line)
-        # Create a Polydata to store all the lines in
-        popLinesPolyData = vtk.vtkPolyData()
-        # Add the lines to the dataset
-        popLinesPolyData.SetPoints(pop_points)
-        popLinesPolyData.SetLines(pop_lines)
-
-        # Create a mapper and actor for the lines
-        pop_line_mapper = vtk.vtkPolyDataMapper()
-        pop_line_mapper.SetInputData(popLinesPolyData)
-        # Set this new mapper as the mapper
-        self.line_actor.SetMapper(pop_line_mapper)
-        # Update the year text
-        self.text_actor.SetInput(str(self.timer_count + 1996))
-        # Get the interaction object
-        iren = obj
-        # Render the new frame
-        iren.GetRenderWindow().Render()
-
-# Class used to animate visualization 3b (genre popularity by releases)
-class vtkTimerCallback_vis3b():
-    def __init__(self, start_year = 1930):
-        self.timer_count = start_year
-    def execute(self, obj, event):
-        # Animate the visualization
-        self.timer_count = (self.timer_count + 1) % (2018-1930+1) # Once the entire sequence has been animated, restart from the beginning
-        
-        # Generate a point on each unit vector that corresponds to that unit vector's genre's popularity for a given time
-        year_popularity = self.genre_popularity[self.timer_count] # Get the dict for this year
-        year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
-        year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
-        normalised_year_popularity = list(map(lambda n : [n[0], (3*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
-        # The maximum normalised_year_pop ever is <0.33, so multiply all pop values by 3 (to make the plot more readable)
-
-        # Create points on each unit vector proportionately distant from origin to this genre's popularity for that year
-        pop_lines = vtk.vtkCellArray()
-        pop_points = vtk.vtkPoints()
-        for index, unit_vector in enumerate(self.unit_vectors):
-            pop_points.InsertNextPoint(unit_vector[0]*normalised_year_popularity[index][1], unit_vector[1]*normalised_year_popularity[index][1], 0)
-            if index > 0:
-                line = vtk.vtkLine()
-                line.GetPointIds().SetId(0, index - 1)
-                line.GetPointIds().SetId(1, index)
-                pop_lines.InsertNextCell(line)
-        # Add the last line that joins the last pop_point to the first pop_point
-        line = vtk.vtkLine()
-        line.GetPointIds().SetId(0, index)
-        line.GetPointIds().SetId(1, 0)
-        pop_lines.InsertNextCell(line)
-        # Create a Polydata to store all the lines in
-        popLinesPolyData = vtk.vtkPolyData()
-        # Add the lines to the dataset
-        popLinesPolyData.SetPoints(pop_points)
-        popLinesPolyData.SetLines(pop_lines)
-
-        # Create a mapper and actor for the lines
-        pop_line_mapper = vtk.vtkPolyDataMapper()
-        pop_line_mapper.SetInputData(popLinesPolyData)
-        # Set this new mapper as the mapper
-        self.line_actor.SetMapper(pop_line_mapper)
-        # Update the year text
-        self.text_actor.SetInput(str(self.timer_count + 1930))
-        # Get the interaction object
-        iren = obj
-        # Render the new frame
-        iren.GetRenderWindow().Render()
-
 # Create the GUI
 class Window(Frame):
 
@@ -923,145 +827,105 @@ class Window(Frame):
     def point_cloud(self):
         colors = vtk.vtkNamedColors()
 
-        # create a rendering window and renderer
-        ren = vtk.vtkRenderer()
-        renWin = vtk.vtkRenderWindow()
-        renWin.AddRenderer(ren)
+# Class used to animate visualization 3a (genre popularity by reviews)
+class vtkTimerCallback_vis3a():
+    def __init__(self, start_year = 1996):
+        self.timer_count = start_year
+    def execute(self, obj, event):
+        # Animate the visualization
+        self.timer_count = (self.timer_count + 1) % (2018-1996+1) # Once the entire sequence has been animated, restart from the beginning
 
-        # create a renderwindowinteractor
-        iren = vtk.vtkRenderWindowInteractor()
-        iren.SetRenderWindow(renWin)
+        # Generate a point on each unit vector that corresponds to that unit vector's genre's popularity for a given time
+        year_popularity = self.genre_popularity[self.timer_count] # Get the dict for this year
+        year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
+        year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
+        normalised_year_popularity = list(map(lambda n : [n[0], (5*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
+        # The maximum normalised_year_pop ever is <0.2, so multiply all pop values by 5 (to make the plot more readable)
 
-        # create source
-        src = vtk.vtkPointSource()
-        src.SetCenter(0, 0, 0)
-        src.SetNumberOfPoints(50)
-        src.SetRadius(5)
-        src.Update()
+        # Create points on each unit vector proportionately distant from origin to this genre's popularity for that year
+        pop_lines = vtk.vtkCellArray()
+        pop_points = vtk.vtkPoints()
+        for index, unit_vector in enumerate(self.unit_vectors):
+            pop_points.InsertNextPoint(unit_vector[0]*normalised_year_popularity[index][1], unit_vector[1]*normalised_year_popularity[index][1], 0)
+            if index > 0:
+                line = vtk.vtkLine()
+                line.GetPointIds().SetId(0, index - 1)
+                line.GetPointIds().SetId(1, index)
+                pop_lines.InsertNextCell(line)
+        # Add the last line that joins the last pop_point to the first pop_point
+        line = vtk.vtkLine()
+        line.GetPointIds().SetId(0, index)
+        line.GetPointIds().SetId(1, 0)
+        pop_lines.InsertNextCell(line)
+        # Create a Polydata to store all the lines in
+        popLinesPolyData = vtk.vtkPolyData()
+        # Add the lines to the dataset
+        popLinesPolyData.SetPoints(pop_points)
+        popLinesPolyData.SetLines(pop_lines)
 
-        # mapper
-        mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInputConnection(src.GetOutputPort())
+        # Create a mapper and actor for the lines
+        pop_line_mapper = vtk.vtkPolyDataMapper()
+        pop_line_mapper.SetInputData(popLinesPolyData)
+        # Set this new mapper as the mapper
+        self.line_actor.SetMapper(pop_line_mapper)
+        # Update the year text
+        self.text_actor.SetInput(str(self.timer_count + 1996))
+        # Get the interaction object
+        iren = obj
+        # Render the new frame
+        iren.GetRenderWindow().Render()
 
-        # actor
-        actor = vtk.vtkActor()
-        actor.SetMapper(mapper)
-        actor.GetProperty().SetColor(colors.GetColor3d('Yellow'))
+# Class used to animate visualization 3b (genre popularity by releases)
+class vtkTimerCallback_vis3b():
+    def __init__(self, start_year = 1930):
+        self.timer_count = start_year
+    def execute(self, obj, event):
+        # Animate the visualization
+        self.timer_count = (self.timer_count + 1) % (2018-1930+1) # Once the entire sequence has been animated, restart from the beginning
 
-        actor.GetProperty().SetPointSize(5)
+        # Generate a point on each unit vector that corresponds to that unit vector's genre's popularity for a given time
+        year_popularity = self.genre_popularity[self.timer_count] # Get the dict for this year
+        year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
+        year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
+        normalised_year_popularity = list(map(lambda n : [n[0], (3*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
+        # The maximum normalised_year_pop ever is <0.33, so multiply all pop values by 3 (to make the plot more readable)
 
-        # Add axes
-        transform = vtk.vtkTransform()
-        transform.Translate(1.0, 0.0, 0.0)
+        # Create points on each unit vector proportionately distant from origin to this genre's popularity for that year
+        pop_lines = vtk.vtkCellArray()
+        pop_points = vtk.vtkPoints()
+        for index, unit_vector in enumerate(self.unit_vectors):
+            pop_points.InsertNextPoint(unit_vector[0]*normalised_year_popularity[index][1], unit_vector[1]*normalised_year_popularity[index][1], 0)
+            if index > 0:
+                line = vtk.vtkLine()
+                line.GetPointIds().SetId(0, index - 1)
+                line.GetPointIds().SetId(1, index)
+                pop_lines.InsertNextCell(line)
+        # Add the last line that joins the last pop_point to the first pop_point
+        line = vtk.vtkLine()
+        line.GetPointIds().SetId(0, index)
+        line.GetPointIds().SetId(1, 0)
+        pop_lines.InsertNextCell(line)
+        # Create a Polydata to store all the lines in
+        popLinesPolyData = vtk.vtkPolyData()
+        # Add the lines to the dataset
+        popLinesPolyData.SetPoints(pop_points)
+        popLinesPolyData.SetLines(pop_lines)
 
-        axes = vtk.vtkAxesActor()
-        #  The axes are positioned with a user transform
-        axes.SetUserTransform(transform)
-
-        # properties of the axes labels can be set as follows
-        # this sets the x axis label to red
-        # axes.GetXAxisCaptionActor2D().GetCaptionTextProperty().SetColor(colors.GetColor3d("Red"));
-
-        # the actual text of the axis label can be changed:
-        axes.SetXAxisLabelText("test")
-        axes.SetYAxisLabelText("testY")
-        axes.SetZAxisLabelText("testZ")
-
-
-        # assign actors to the renderer
-        ren.AddActor(actor)
-        ren.AddActor(axes)
-        ren.SetBackground(colors.GetColor3d('RoyalBLue'))
-
-        # enable user interface interactor
-        iren.Initialize()
-        renWin.Render()
-        iren.Start()
-
-    def grid_2D(self):
-        """Generate a 2D grid in 3D space
-        """
-        colors = vtk.vtkNamedColors()
-        # Provide some geometry.
-        xResolution = 10
-        yResolution = 10
-        aPlane = vtk.vtkPlaneSource()
-        aPlane.SetXResolution(xResolution)
-        aPlane.SetYResolution(yResolution)
-        size = xResolution * yResolution + 1
-
-        # Create cell data.
-        cellData = vtk.vtkFloatArray()
-        for i in range(0, xResolution * yResolution):
-            cellData.InsertNextValue(i)
-        aPlane.Update()  # Force an update so we can set cell data.
-        aPlane.GetOutput().GetCellData().SetScalars(cellData)
-
-
-        # Set up the actor and mapper.
-        mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInputConnection(aPlane.GetOutputPort())
-        mapper.SetScalarModeToUseCellData()
-        mapper.SetScalarRange(0, size)
-
-        actor = vtk.vtkActor()
-        actor.SetMapper(mapper)
-        actor.GetProperty().EdgeVisibilityOn()
-
-        # Setup render window, renderer, and interactor.
-        renderer = vtk.vtkRenderer()
-        renderWindow = vtk.vtkRenderWindow()
-        renderWindow.AddRenderer(renderer)
-        renderWindowInteractor = vtk.vtkRenderWindowInteractor()
-        renderWindowInteractor.SetRenderWindow(renderWindow)
-
-        renderer.AddActor(actor)
-        renderer.SetBackground(colors.GetColor3d('SlateGray'))
-        renderWindow.Render()
-        renderWindowInteractor.Start()
-
-    def generate_cube(self):
-        # create polygonal cube geometry
-        #   here a procedural source object is used,
-        #   a source can also be, e.g., a file reader
-        cube = vtk.vtkCubeSource()
-        cube.SetBounds(-1,1,-1,1,-1,1)
-
-        # map to graphics library
-        #   a mapper is the interface between the visualization pipeline
-        #   and the graphics model
-        mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInputConnection(cube.GetOutputPort()) # connect source and mapper
-
-        # an actor represent what we see in the scene,
-        # it coordinates the geometry, its properties, and its transformation
-        aCube = vtk.vtkActor()
-        aCube.SetMapper(mapper)
-        aCube.GetProperty().SetColor(0,0.7,0.7) # cube color green
-        
-        # a renderer and render window
-        ren1 = vtk.vtkRenderer()
-        renWin = vtk.vtkRenderWindow()
-        renWin.AddRenderer(ren1)
-
-        # an interactor
-        iren = vtk.vtkRenderWindowInteractor()
-        iren.SetRenderWindow(renWin)
-
-        # add the actor to the scene
-        ren1.AddActor(aCube)
-        ren1.SetBackground(0.5,0.5,0.5) # Background color white
-
-        # render an image (lights and cameras are created automatically)
-        renWin.Render()
-
-        # begin mouse interaction
-        iren.Start()
+        # Create a mapper and actor for the lines
+        pop_line_mapper = vtk.vtkPolyDataMapper()
+        pop_line_mapper.SetInputData(popLinesPolyData)
+        # Set this new mapper as the mapper
+        self.line_actor.SetMapper(pop_line_mapper)
+        # Update the year text
+        self.text_actor.SetInput(str(self.timer_count + 1930))
+        # Get the interaction object
+        iren = obj
+        # Render the new frame
+        iren.GetRenderWindow().Render()
 
 
 # Spawn the GUI
 root = Tk()
-
 
 # Default size of the window
 root.geometry("1600x900")
