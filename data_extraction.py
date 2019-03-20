@@ -186,7 +186,7 @@ def get_top_movies_by_genre(movies, aggregate_ratings, genre, number=10):
 
 # Gets the popularity of each genre (counted as the number of ratings submitted about movies of that genre) as a function over time
 def get_genre_popularity_by_reviews_over_time(movies, ratings):
-    print("Gathering genre popularity metrics")
+    print("Gathering genre popularity metrics (reviews)")
     # Join ratings and movies on movieId
     rating_movies = ratings.join(movies.set_index('movieId'), on='movieId')
     # List of all movie genres - not including [no genre listed]
@@ -204,7 +204,7 @@ def get_genre_popularity_by_reviews_over_time(movies, ratings):
 # Gets the popularity of each genre (counted as the number of movies of that genre released) as a function over time
 # Only gathers data for years in range [1930, 2018] as before this there's too few movies in the dataset to produce a good view (<100)
 def get_genre_popularity_by_releases_over_time(movies):
-    print("Gathering genre popularity metrics")
+    print("Gathering genre popularity metrics (releases)")
     # List of all movie genres - not including [no genre listed]
     genres = ['Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'IMAX', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
     # Create a list of timestamps (years from 1930 to 2018 inclusive), each list holds the number of movies for each genre in that year
