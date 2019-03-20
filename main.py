@@ -109,63 +109,106 @@ class Window(Frame):
         self.vis2_genre2_list = StringVar(self.master)
         self.vis2_genre2_list.set('None')
 
-        vis2_genre2 = OptionMenu(self, self.vis2_genre2_list, 'None', *genres)
-        vis2_genre2.config(**self.optionmenu_size_args)
-        # Place the drop down list in the window
-        vis2_genre2.grid(column=1, row=2)
-        self.vis2_genre2_list.trace('w', self.updateGenre)
-
         # Create a button instance
-        circularChartButton = Button(self, text="Visualization 3:\nHow the relative popularity of Genres changes over time\n(Optional: Select a year and framerate below)\nSelect the metric:\n(releases (1930-2018) or reviews (1996-2018))", command=self.vtk_pop_handler, **self.button_size_args)
+        circularChartButton = Button(self, text="Visualization 2:\nHow the relative popularity of Genres changes over time\n(Optional: Select a year and framerate below)\nSelect the metric:\n(releases (1930-2018) or reviews (1996-2018))", command=self.vtk_pop_handler, **self.button_size_args)
         # Place the button in the window
-        circularChartButton.grid(column=2, row=0)
+        circularChartButton.grid(column=1, row=0)
 
         # Create a drop down list to choose the year for the above visualization
-        self.vis3_year_list = StringVar(self.master)
-        self.vis3_year_list.set('1930')
+        self.vis2_year_list = StringVar(self.master)
+        self.vis2_year_list.set('1930')
 
         year_options = [str(i) for i in range(1930, 2019, 10)]
         year_options.insert(0, 'Total')
         year_options.append('2019')
 
-        vis3_year = OptionMenu(self, self.vis3_year_list, *year_options)
-        vis3_year.config(**self.optionmenu_size_args)
+        vis2_year = OptionMenu(self, self.vis2_year_list, *year_options)
+        vis2_year.config(**self.optionmenu_size_args)
         # Place the drop down list in the window
-        vis3_year.grid(column=2, row=1)
-        self.vis3_year_list.trace('w', self.updateYear)
+        vis2_year.grid(column=1, row=1)
+        self.vis2_year_list.trace('w', self.updateYear)
 
         # Create a drop down list to choose the year for the above visualization
-        self.vis3_framerate_list = StringVar(self.master)
-        self.vis3_framerate_list.set('5 FPS')
+        self.vis2_framerate_list = StringVar(self.master)
+        self.vis2_framerate_list.set('5 FPS')
         framerate_options = ['Static', '1 FPS', '2 FPS', '3 FPS', '5 FPS', '10 FPS', '20 FPS', 'One Loop per Second']
 
-        vis3_framerate = OptionMenu(self, self.vis3_framerate_list, *framerate_options)
-        vis3_framerate.config(**self.optionmenu_size_args)
+        vis2_framerate = OptionMenu(self, self.vis2_framerate_list, *framerate_options)
+        vis2_framerate.config(**self.optionmenu_size_args)
         # Place the drop down list in the window
-        vis3_framerate.grid(column=2, row=2)
-        self.vis3_framerate_list.trace('w', self.updateFramerate)
+        vis2_framerate.grid(column=1, row=2)
+        self.vis2_framerate_list.trace('w', self.updateFramerate)
 
         # Create a drop down list to choose the metric for the above visualization
-        self.vis3_metric_list = StringVar(self.master)
-        self.vis3_metric_list.set('Releases')
+        self.vis2_metric_list = StringVar(self.master)
+        self.vis2_metric_list.set('Releases')
 
-        vis3_metric = OptionMenu(self, self.vis3_metric_list, "Releases", "Reviews")
-        vis3_metric.config(**self.optionmenu_size_args)
+        vis2_metric = OptionMenu(self, self.vis2_metric_list, "Releases", "Reviews")
+        vis2_metric.config(**self.optionmenu_size_args)
         # Place the drop down list in the window
-        vis3_metric.grid(column=2, row=3)
-        self.vis3_metric_list.trace('w', self.updatePopMetric)
+        vis2_metric.grid(column=1, row=3)
+        self.vis2_metric_list.trace('w', self.updatePopMetric)
+
+        kd_label = Label(self, text="The cells below support knowledge discovery in the Movielens dataset. This works by taking in two movies (as IDs), and comparing their genome scores to evaluate how similar they are. This similarity is then outputted, along with a third movie that is similar to both the input movies.", font=("Courier", 14), wraplength=32*10)
+        kd_label.grid(column=3, row=0)
+
+        kd_movie_frame = Frame(self)
+        kd_movie_frame.grid(column=3, row=1)
+
+        kd_movie1_frame = Frame(kd_movie_frame)
+        kd_movie1_frame.grid(column=0, row=0)
+
+        self.kd_movie1_var = StringVar(kd_movie1_frame)
+        kd_movie1_label = Label(kd_movie1_frame, text="KD: First movie (ID)", font=("Courier", 14))
+        kd_movie1_label.pack(side = TOP)
+        kd_movie1 = Entry(kd_movie1_frame, width=30, textvariable=self.kd_movie1_var, font=("Courier", 12))
+        kd_movie1.pack(side = BOTTOM )
+
+        kd_movie2_frame = Frame(kd_movie_frame)
+        kd_movie2_frame.grid(column=0, row=1)
+
+        self.kd_movie2_var = StringVar(kd_movie2_frame)
+        kd_movie2_label = Label(kd_movie2_frame, text="KD: Second movie (ID)", font=("Courier", 14))
+        kd_movie2_label.pack(side = TOP)
+        kd_movie2 = Entry(kd_movie2_frame, width=30, textvariable=self.kd_movie2_var, font=("Courier", 12))
+        kd_movie2.pack( side = BOTTOM )
+
+        kd_movie_output_frame = Frame(self)
+        kd_movie_output_frame.grid(column=3, row=2)
+
+        temp_button_size_args = self.button_size_args
+        temp_button_size_args['height'] = 4
+        kd_movie_button = Button(kd_movie_output_frame, text="Submit movies for knowledge discovery", command=self.kd_movie_similarity, **temp_button_size_args)
+
+        kd_movie_button.config()
+        kd_movie_button.pack(side = TOP)
+
+        self.kd_movie_output_var = StringVar(kd_movie_output_frame)
+
+        kd_movie_output = Label(kd_movie_output_frame, textvariable=self.kd_movie_output_var, font=("Courier", 12), wraplength=32*12)
+        kd_movie_output.pack(side = BOTTOM)
+
 
     # Gathering of data
     def init_data(self):
+        self.genres = ['Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'IMAX', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
+
         self.movies, self.tags, self.ratings = de.read_dataset()
 
-        self.aggregate_ratings = []
-        self.rating_stats_by_genre = []
+        nrows = 100000 # Set to allow use of aggregate ratings
+        # Get a limited dataset to be used in vtk_ratings_by_genre, as this takes extremely long to load on the full dataset
+        self.movies_2, self.tags_2, self.ratings_2 = de.read_dataset(nrows)
+        self.aggregate_ratings = de.get_ratings_stats(self.movies_2, self.ratings_2)
+        self.rating_stats_by_genre = de.get_rating_stats_by_genre(self.movies_2, self.aggregate_ratings, self.genres)
 
         self.genre_popularity_by_reviews = de.get_genre_popularity_by_reviews_over_time(self.movies, self.ratings)
         self.genre_popularity_by_releases = de.get_genre_popularity_by_releases_over_time(self.movies)
 
-        self.genres = ['Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'IMAX', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
+
+        self.genre_overlap = de.get_genre_overlap(self.movies, self.genres)
+        self.genre_counts = de.get_genre_counts(self.movies, self.genres)
+
+        self.genome_scores, self.genome_tags = de.get_genome_data()
 
         print("Done initializing data")
 
@@ -189,60 +232,60 @@ class Window(Frame):
         pass
 
     def updateYear(self, *args):
-        year = self.vis3_year_list.get()
+        year = self.vis2_year_list.get()
         # Update the displayed value - necessary if this is called directly (from updatePopMetric)
-        self.vis3_year_list.set(year)
+        self.vis2_year_list.set(year)
         self.year = 0 if year == 'Total' else int(year)
 
     def updateFramerate(self, *args):
-        val = self.vis3_framerate_list.get()
+        val = self.vis2_framerate_list.get()
         # Dict holding framerates depending on first two character of val
         rates = {'St': 0, '1 ': 1, '2 ': 2, '3 ': 3, '5 ': 5, '10': 10, '20': 20, 'On': -1}
         self.framerate = rates[val[0:2]]
 
     def updatePopMetric(self, *args):
-        self.popMetric = self.vis3_metric_list.get()
+        self.popMetric = self.vis2_metric_list.get()
         if self.popMetric == 'Reviews':
             # Replace the year selection button
             # Create a drop down list to choose the year for the above visualization
-            self.vis3_year_list = StringVar(self.master)
-            self.vis3_year_list.set('1996')
+            self.vis2_year_list = StringVar(self.master)
+            self.vis2_year_list.set('1996')
 
             year_options = [str(i) for i in range(1996, 2019)]
             year_options.insert(0, 'Total')
 
-            vis3_year = OptionMenu(self, self.vis3_year_list, *year_options)
-            vis3_year.config(**self.optionmenu_size_args)
+            vis2_year = OptionMenu(self, self.vis2_year_list, *year_options)
+            vis2_year.config(**self.optionmenu_size_args)
             # Place the drop down list in the window
-            vis3_year.grid(column=2, row=1)
-            self.vis3_year_list.trace('w', self.updateYear)
+            vis2_year.grid(column=1, row=1)
+            self.vis2_year_list.trace('w', self.updateYear)
         else:
             # Create a drop down list to choose the year for the above visualization
-            self.vis3_year_list = StringVar(self.master)
-            self.vis3_year_list.set('1930')
+            self.vis2_year_list = StringVar(self.master)
+            self.vis2_year_list.set('1930')
 
             year_options = [str(i) for i in range(1930, 2019, 10)]
             year_options.insert(0, 'Total')
             year_options.append('2019')
 
-            vis3_year = OptionMenu(self, self.vis3_year_list, *year_options)
-            vis3_year.config(**self.optionmenu_size_args)
+            vis2_year = OptionMenu(self, self.vis2_year_list, *year_options)
+            vis2_year.config(**self.optionmenu_size_args)
             # Place the drop down list in the window
-            vis3_year.grid(column=2, row=1)
-            self.vis3_year_list.trace('w', self.updateYear)
+            vis2_year.grid(column=1, row=1)
+            self.vis2_year_list.trace('w', self.updateYear)
         # call the updateYear function
         self.updateYear()
+
+    def updateMovie1(self, *args):
+        pass
+
+    def updateMovie2(self, *args):
+        pass
 
     def test(self):
         pass
 
     def vtk_ratings_by_genre(self):
-        # Produce rating distributions if they are not already stored
-        if(len(self.aggregate_ratings) == 0):
-            self.aggregate_ratings = de.get_ratings_stats(self.movies, self.ratings)
-        if len(self.rating_stats_by_genre) == 0:
-            self.rating_stats_by_genre = de.get_rating_stats_by_genre(self.movies, self.aggregate_ratings, self.genres)
-
         # Read which metric to use
         metric = self.metric
         
@@ -772,46 +815,61 @@ class Window(Frame):
         # Start the interaction and timer
         renderWindowInteractor.Start()
 
-    def glyphs_at_points(self):
-        colors = vtk.vtkNamedColors()
+    def kd_movie_similarity(self):
+        # Read the two input movie ids/names, find their similarity, and return it and the most similar third movie
+        movie1 = self.kd_movie1_var.get()
+        movie2 = self.kd_movie2_var.get()
 
-        points = vtk.vtkPoints()
-        points.InsertNextPoint(0,0,0)
-        points.InsertNextPoint(1,1,1)
-        points.InsertNextPoint(2,2,2)
+        # Try to convert movie1 and movie2 into ids
+        if movie1.isdigit():
+            movie1_id = int(movie1)
+        else:
+            self.kd_movie_output_var.set("Error: invalid movie 1 ID.")
+            return
 
-        polydata = vtk.vtkPolyData()
-        polydata.SetPoints(points)
+        if movie2.isdigit():
+            movie2_id = int(movie2)
+            if movie2_id == movie1_id:
+                self.kd_movie_output_var.set("Error: invalid movie 2 ID.")
+                return
 
-        # Create anything you want here, we will use a cube for the demo.
-        sphereSource = vtk.vtkSphereSource()
+        else:
+            self.kd_movie_output_var.set("Error: invalid movie 2 ID.")
+            return
 
-        glyph3D = vtk.vtkGlyph3D()
-        glyph3D.SetSourceConnection(sphereSource.GetOutputPort())
-        glyph3D.SetInputData(polydata)
-        glyph3D.Update()
+        # Now Get the tag relevance vectors for these two movies
+        tag_relevance_1 = list(self.genome_scores[self.genome_scores['movieId'] == movie1_id]['relevance'])
+        tag_relevance_2 = list(self.genome_scores[self.genome_scores['movieId'] == movie2_id]['relevance'])
 
-        # Visualize
-        mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInputConnection(glyph3D.GetOutputPort())
+        # Compute the SSD of the two vectors
+        def ssd(vec1, vec2):
+            vec_sum = 0
+            for i in range(len(vec1)):
+                vec_sum += (vec1[i] - vec2[i])**2
+            return vec_sum
+        tag_ssd = ssd(tag_relevance_1, tag_relevance_2)
 
-        actor = vtk.vtkActor()
-        actor.SetMapper(mapper)
+        # Find a movie other than these two with a lower ssd to both movies, i.e. it 'lies between' the two movies
+        shuffled = self.movies['movieId'].copy()
+        shuffled = shuffled.values
+        random.shuffle(shuffled)
+        for movieId in shuffled:
+            this_tag = list(self.genome_scores[self.genome_scores['movieId'] == movieId]['relevance'])
 
-        renderer = vtk.vtkRenderer()
-        renderWindow = vtk.vtkRenderWindow()
-        renderWindow.AddRenderer(renderer)
-        renderWindowInteractor = vtk.vtkRenderWindowInteractor()
-        renderWindowInteractor.SetRenderWindow(renderWindow)
+            ssd_1 = ssd(this_tag, tag_relevance_1)
+            ssd_2 = ssd(this_tag, tag_relevance_2)
+            if(ssd_1 < tag_ssd and ssd_2 < tag_ssd):
+                break
 
-        renderer.AddActor(actor)
-        renderer.SetBackground(colors.GetColor3d("SlateGray")) # Background Slate Gray
+        # Get the movie's title and display it in the output var
+        match_name = self.movies.loc[self.movies['movieId'] == movieId, 'title'].values[0]
+        movie1_name = self.movies.loc[self.movies['movieId'] == movie1_id, 'title'].values[0]
+        movie2_name = self.movies.loc[self.movies['movieId'] == movie2_id, 'title'].values[0]
 
-        renderWindow.Render()
-        renderWindowInteractor.Start()
 
-    def point_cloud(self):
-        colors = vtk.vtkNamedColors()
+
+        # Write output to self.kd_movie_output_var
+        self.kd_movie_output_var.set("Difference index (lower is more similar): {:.2f}\nFor '{}' and '{}'\nA similar movie: {} (ID: {})".format(tag_ssd, movie1_name, movie2_name, match_name, movieId))
 
 # Class used to animate visualization 3a (genre popularity by reviews)
 class vtkTimerCallback_vis3a():
