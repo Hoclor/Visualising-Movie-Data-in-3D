@@ -207,10 +207,6 @@ class Window(Frame):
         self.genre_popularity_by_reviews = de.get_genre_popularity_by_reviews_over_time(self.movies, self.ratings)
         self.genre_popularity_by_releases = de.get_genre_popularity_by_releases_over_time(self.movies)
 
-
-        self.genre_overlap = de.get_genre_overlap(self.movies, self.genres)
-        self.genre_counts = de.get_genre_counts(self.movies, self.genres)
-
         self.genome_scores, self.genome_tags = de.get_genome_data()
 
         print("Done initializing data")
@@ -559,14 +555,13 @@ class Window(Frame):
             year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
             year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
             normalised_year_popularity = list(map(lambda n : [n[0], (5*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
-            print(max([n[1] for n in normalised_year_popularity]))
             # The maximum normalised_year_pop is <0.2 even when looking at all data combined, so multiply all pop values by 5 (to make the plot more readable)
         else:
             year_popularity = self.genre_popularity_by_reviews[year] # Get the dict for this year
-        year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
-        year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
-        normalised_year_popularity = list(map(lambda n : [n[0], (5*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
-        # The maximum normalised_year_pop ever is <0.2, so multiply all pop values by 5 (to make the plot more readable)
+            year_popularity = list(sorted(year_popularity.items())) # Convert the dict into a list of [key, value]
+            year_pop_sum = sum([n[1] for n in year_popularity]) # Compute the total number of ratings submitted for this year
+            normalised_year_popularity = list(map(lambda n : [n[0], (5*n[1]/year_pop_sum if year_pop_sum > 0 else n[1])], year_popularity)) # Normalised popularities (sum over genres = 1)
+            # The maximum normalised_year_pop ever is <0.2, so multiply all pop values by 5 (to make the plot more readable)
 
         # Create points on each unit vector proportionately distant from origin to this genre's popularity for that year
         pop_lines = vtk.vtkCellArray()
