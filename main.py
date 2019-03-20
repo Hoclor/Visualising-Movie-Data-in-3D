@@ -88,26 +88,30 @@ class Window(Frame):
         vis1_rating.grid(column=0, row=1)
         self.vis1_rating_list.trace('w', self.updateMetric)
 
-        # Create a button instance
-        genreGraphButton = Button(self, text="Visualization 2:\nHow different Genres are connected through movies\n\n(Optional: Select one or two genres below)", command=self.vtk_genre_graph, **self.button_size_args)
-        # Place the button in the window
-        genreGraphButton.grid(column=1, row=0)
+        # # Create a button instance
+        # genreGraphButton = Button(self, text="Visualization 2:\nHow different Genres are connected through movies\n\n(Optional: Select one or two genres below)", command=self.vtk_genre_graph, **self.button_size_args)
+        # # Place the button in the window
+        # genreGraphButton.grid(column=1, row=0)
 
-        genres = ['Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'IMAX', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
+        # # Create two drop down lists to choose genres from for the above visualization
+        # self.vis2_genre1_list = StringVar(self.master)
+        # self.vis2_genre1_list.set('None')
 
-        # Create two drop down lists to choose genres from for the above visualization
-        self.vis2_genre1_list = StringVar(self.master)
-        self.vis2_genre1_list.set('None')
+        # vis2_genre1 = OptionMenu(self, self.vis2_genre1_list, 'None', *self.genres)
+        # vis2_genre1.config(**self.optionmenu_size_args)
+        # # Place the drop down list in the window
+        # vis2_genre1.grid(column=1, row=1)
+        # self.vis2_genre1_list.trace('w', self.updateGenre)
 
-        vis2_genre1 = OptionMenu(self, self.vis2_genre1_list, 'None', *genres)
-        vis2_genre1.config(**self.optionmenu_size_args)
-        # Place the drop down list in the window
-        vis2_genre1.grid(column=1, row=1)
-        self.vis2_genre1_list.trace('w', self.updateGenre)
+        # # Second drop down list
+        # self.vis2_genre2_list = StringVar(self.master)
+        # self.vis2_genre2_list.set('None')
 
-        # Second drop down list
-        self.vis2_genre2_list = StringVar(self.master)
-        self.vis2_genre2_list.set('None')
+        # vis2_genre2 = OptionMenu(self, self.vis2_genre2_list, 'None', *self.genres)
+        # vis2_genre2.config(**self.optionmenu_size_args)
+        # # Place the drop down list in the window
+        # vis2_genre2.grid(column=1, row=2)
+        # self.vis2_genre2_list.trace('w', self.updateGenre)
 
         # Create a button instance
         circularChartButton = Button(self, text="Visualization 2:\nHow the relative popularity of Genres changes over time\n(Optional: Select a year and framerate below)\nSelect the metric:\n(releases (1930-2018) or reviews (1996-2018))", command=self.vtk_pop_handler, **self.button_size_args)
