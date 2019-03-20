@@ -829,9 +829,9 @@ class Window(Frame):
         count = 0
         for movieId in shuffled:
             count += 1
-            if(count > 1000):
+            if(count > 500):
                 # Write 'failed to find' output to self.kd_movie_output_var
-                self.kd_movie_output_var.set("Difference index (lower is more similar): {:.2f}\nFailed to find a similar movie found in 1000 attempts.".format(tag_ssd))
+                self.kd_movie_output_var.set("Difference index (lower is more similar): {:.2f}\nFailed to find a similar movie found in 500 attempts.".format(tag_ssd))
             this_tag = list(self.genome_scores[self.genome_scores['movieId'] == movieId]['relevance'])
 
             ssd_1 = ssd(this_tag, tag_relevance_1)
