@@ -1,5 +1,5 @@
 # Visualising Movie data in 3D
-Code for Visualization assignment for `Visualization` submodule as part of `Software, Systems and Applications IV` module, taken in my fourth year of Computer Science at Durham University
+Code for the assignment for the `Visualization` submodule as part of `Software, Systems and Applications IV` module, taken in my fourth year of Computer Science at Durham University
 
 # Running instructions:
 Place the csv files (genome-scores.csv, genome-tags.csv, links.csv, movies.csv, ratings.csv, tags.csv) within a folder named 'movielens_dataset'. This should be done automatically when unzipping the submission.
